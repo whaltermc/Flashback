@@ -1,7 +1,7 @@
 package com.moulberry.flashback.utils;
 
-import imgui.moulberry90.flag.ImGuiKey;
-import imgui.moulberry90.flag.ImGuiMouseButton;
+import imgui.moulberry92.flag.ImGuiKey;
+import imgui.moulberry92.flag.ImGuiMouseButton;
 import net.minecraft.client.input.InputQuirks;
 import org.lwjgl.sdl.SDLKeyboard;
 import org.lwjgl.sdl.SDLMouse;

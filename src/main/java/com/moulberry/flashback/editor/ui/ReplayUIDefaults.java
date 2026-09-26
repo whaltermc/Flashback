@@ -1,8 +1,8 @@
 package com.moulberry.flashback.editor.ui;
 
-import imgui.moulberry90.ImGui;
-import imgui.moulberry90.ImGuiStyle;
-import imgui.moulberry90.flag.ImGuiCol;
+import imgui.moulberry92.ImGui;
+import imgui.moulberry92.ImGuiStyle;
+import imgui.moulberry92.flag.ImGuiCol;
 
 public class ReplayUIDefaults {
 

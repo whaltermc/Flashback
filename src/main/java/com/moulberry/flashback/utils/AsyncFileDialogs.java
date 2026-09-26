@@ -7,6 +7,7 @@ import org.lwjgl.sdl.SDLError;
 import org.lwjgl.sdl.SDL_DialogFileFilter;
 import org.lwjgl.system.MemoryUtil;
 
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 
@@ -44,6 +45,22 @@ public class AsyncFileDialogs {
         return new FileFilter(fileFilter, encodedFilterDescription, encodedFilter);
     }
 
+    /**
+     * Directory used as a fallback whenever the platform's native file/folder
+     * dialog is unavailable (e.g. launchers -- like mjlaunch/Pojav-based ones --
+     * that don't wire up SDL's Android file dialog JNI bridge, causing
+     * "Unspecified error in JNI"). Rather than failing the export/import
+     * entirely, we fall back to a predictable, always-writable location next
+     * to the game directory.
+     */
+    private static File getDefaultExportDir() {
+        File dir = new File(Minecraft.getInstance().gameDirectory, "flashback/exports");
+        if (!dir.exists() && !dir.mkdirs()) {
+            Flashback.LOGGER.warn("Could not create default export directory: {}", dir.getAbsolutePath());
+        }
+        return dir;
+    }
+
     public static CompletableFuture<String> saveFileDialog(String defaultPath, String defaultName, String filterDescription, String... filters) {
         if (hasDialog()) return CompletableFuture.completedFuture(null);
 
@@ -65,7 +82,18 @@ public class AsyncFileDialogs {
 
             if (filelist == MemoryUtil.NULL) {
                 Flashback.LOGGER.error("Error occurred during save file dialog: {}", SDLError.SDL_GetError());
-                future.complete(null);
+
+                // The launcher doesn't support a native save dialog (common on
+                // Android launchers that haven't wired up SDL's file dialog JNI
+                // bridge). Fall back to a predictable default location instead
+                // of failing the export outright.
+                String name = defaultName;
+                if (name != null && autoExtension != null && name.indexOf('.') < 0) {
+                    name = name + "." + autoExtension;
+                }
+                File fallback = new File(getDefaultExportDir(), name != null ? name : "export");
+                Flashback.LOGGER.warn("Falling back to default export path: {}", fallback.getAbsolutePath());
+                future.complete(fallback.getAbsolutePath());
                 return;
             }
 
@@ -98,6 +126,8 @@ public class AsyncFileDialogs {
 
             if (filelist == MemoryUtil.NULL) {
                 Flashback.LOGGER.error("Error occurred during open file dialog: {}", SDLError.SDL_GetError());
+                // No sensible file to fall back to for "open" -- surface as
+                // cancelled rather than guessing a file to import.
                 future.complete(null);
                 return;
             }
@@ -124,7 +154,13 @@ public class AsyncFileDialogs {
 
             if (filelist == MemoryUtil.NULL) {
                 Flashback.LOGGER.error("Error occurred during open folder dialog: {}", SDLError.SDL_GetError());
-                future.complete(null);
+
+                // Same fallback as saveFileDialog: the launcher doesn't
+                // support a native folder picker, so default to a known,
+                // always-writable export folder instead of failing outright.
+                File fallback = getDefaultExportDir();
+                Flashback.LOGGER.warn("Falling back to default export folder: {}", fallback.getAbsolutePath());
+                future.complete(fallback.getAbsolutePath());
                 return;
             }
 
@@ -145,7 +181,8 @@ public class AsyncFileDialogs {
 
     public static String filterLT20(CharSequence in) {
         StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < in.length(); i++) {
+        for (int i = 0; i < in.length(); i++) 
+{
             char c = in.charAt(i);
             if (c >= 32 || c == '\n') builder.append(c);
         }

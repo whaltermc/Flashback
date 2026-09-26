@@ -2,7 +2,7 @@ package com.moulberry.flashback.editor.ui;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.renderpearl.api.textures.GpuTextureView;
-import imgui.moulberry90.ImDrawData;
+import imgui.moulberry92.ImDrawData;
 
 public interface CustomImGuiRenderer {
 

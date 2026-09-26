@@ -8,7 +8,7 @@ import com.moulberry.flashback.keyframe.handler.KeyframeHandler;
 import com.moulberry.flashback.keyframe.handler.MinecraftKeyframeHandler;
 import com.moulberry.flashback.keyframe.impl.AudioKeyframe;
 import com.moulberry.flashback.utils.AsyncFileDialogs;
-import imgui.moulberry90.ImGui;
+import imgui.moulberry92.ImGui;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.resources.language.I18n;
 import org.jetbrains.annotations.Nullable;

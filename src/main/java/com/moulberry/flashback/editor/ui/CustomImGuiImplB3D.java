@@ -20,11 +20,11 @@ import com.mojang.renderpearl.api.textures.GpuTexture;
 import com.mojang.renderpearl.api.textures.GpuTextureView;
 import com.mojang.renderpearl.api.vertex.VertexFormat;
 import com.moulberry.flashback.utils.FramebufferUtils;
-import imgui.moulberry90.ImDrawData;
-import imgui.moulberry90.ImFontAtlas;
-import imgui.moulberry90.ImVec2;
-import imgui.moulberry90.ImVec4;
-import imgui.moulberry90.type.ImInt;
+import imgui.moulberry92.ImDrawData;
+import imgui.moulberry92.ImFontAtlas;
+import imgui.moulberry92.ImVec2;
+import imgui.moulberry92.ImVec4;
+import imgui.moulberry92.type.ImInt;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
@@ -320,7 +320,7 @@ public class CustomImGuiImplB3D implements CustomImGuiRenderer {
                     clipMinY = Math.max(clipMinY, 0);
                     clipMaxY = Math.min(clipMaxY, fbHeight);
 
-                    if (clipMaxX < clipMinX || clipMaxY < clipMinY) {
+                    if (clipMaxX <= clipMinX || clipMaxY <= clipMinY) {
                         continue;
                     }
 

@@ -1,7 +1,7 @@
 package com.moulberry.flashback.editor.keybinds;
 
 import com.moulberry.flashback.configuration.FlashbackConfigV1;
-import imgui.moulberry90.flag.ImGuiKey;
+import imgui.moulberry92.flag.ImGuiKey;
 
 import java.util.HashMap;
 import java.util.HashSet;

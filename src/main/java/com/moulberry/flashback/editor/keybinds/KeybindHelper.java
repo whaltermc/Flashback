@@ -1,7 +1,7 @@
 package com.moulberry.flashback.editor.keybinds;
 
-import imgui.moulberry90.flag.ImGuiKey;
-import imgui.moulberry90.flag.ImGuiMouseButton;
+import imgui.moulberry92.flag.ImGuiKey;
+import imgui.moulberry92.flag.ImGuiMouseButton;
 
 import java.util.Locale;
 

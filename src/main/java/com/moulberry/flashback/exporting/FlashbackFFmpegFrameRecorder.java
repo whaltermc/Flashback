@@ -582,6 +582,21 @@ public class FlashbackFFmpegFrameRecorder {
                     av_dict_set(options, e.getKey(), e.getValue(), 0);
                 }
 
+                // *_mediacodec encoders (e.g. h264_mediacodec, hevc_mediacodec) can use
+                // either FFmpeg's older JNI backend (calls back into the Java class
+                // android.media.MediaCodec) or its NDK-native backend (talks directly to
+                // libmediandk.so, no Java class involved). FFmpeg auto-selects JNI mode
+                // whenever a JavaVM happens to be registered with it, but some launchers
+                // (e.g. mjlaunch/Pojav-based ones) run the game in an embedded JVM that
+                // has no Android framework classes on its classpath, so the JNI backend
+                // fails with NoClassDefFoundError even though a JavaVM is present. Force
+                // the NDK backend for these encoders unless the caller explicitly chose
+                // a value already via setVideoOption("ndk_codec", ...).
+                if (video_codec.name() != null && video_codec.name().getString().endsWith("_mediacodec")
+                        && !videoOptions.containsKey("ndk_codec")) {
+                    av_dict_set(options, "ndk_codec", "1", 0);
+                }
+
                 // Enable multithreading when available
                 video_c.thread_count(0);
 
