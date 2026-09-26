@@ -6,7 +6,7 @@ import com.moulberry.flashback.editor.ui.ImGuiHelper;
 import com.moulberry.flashback.editor.ui.ReplayUI;
 import com.moulberry.lattice.keybind.KeybindInterface;
 import com.moulberry.lattice.keybind.LatticeInputType;
-import imgui.moulberry90.ImGuiIO;
+import imgui.moulberry92.ImGuiIO;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.input.InputQuirks;
 import net.minecraft.client.input.KeyEvent;

@@ -585,6 +585,15 @@ public class FlashbackFFmpegFrameRecorder {
                 // Enable multithreading when available
                 video_c.thread_count(0);
 
+                // Force Android MediaCodec encoders to use FFmpeg's native NDK backend.
+                // This avoids the Java JNI backend, which requires android.media.MediaCodec
+                // and is unavailable in some embedded Android launcher JVMs.
+                if (video_codec.name() != null
+                        && video_codec.name().getString().endsWith("_mediacodec")
+                        && !videoOptions.containsKey("ndk_codec")) {
+                    av_dict_set(options, "ndk_codec", "1", 0);
+                }
+
                 /* open the codec */
                 if ((ret = avcodec_open2(video_c, video_codec, options)) < 0) {
                     releaseUnsafe();

@@ -8,6 +8,9 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.util.nfd.NFDFilterItem;
 import org.lwjgl.util.nfd.NativeFileDialog;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -23,6 +26,36 @@ public class AsyncFileDialogs {
         return currentSaveOrOpenFileDialog != null;
     }
 
+    /**
+     * Android/launcher fallback for save dialogs.
+     *
+     * If native-file-dialog (NFD) is unavailable or throws an exception,
+     * save directly to:
+     *
+     * <game directory>/flashback/exports/<defaultName>
+     */
+    private static String getFallbackExportPath(String defaultName) {
+        try {
+            Path exportDirectory = Minecraft.getInstance().gameDirectory.toPath()
+                    .resolve("flashback")
+                    .resolve("exports");
+
+            Files.createDirectories(exportDirectory);
+
+            String safeName = defaultName == null || defaultName.isBlank()
+                    ? "flashback_export"
+                    : defaultName;
+
+            // Prevent a caller from escaping the exports directory.
+            safeName = Path.of(safeName).getFileName().toString();
+
+            return exportDirectory.resolve(safeName).toString();
+        } catch (Throwable t) {
+            t.printStackTrace();
+            return null;
+        }
+    }
+
     public static CompletableFuture<String> saveFileDialog(String defaultPath, String defaultName, String filterDescription, String... filters) {
         if (hasDialog()) return CompletableFuture.completedFuture(null);
 
@@ -33,40 +66,62 @@ public class AsyncFileDialogs {
         AsyncFileDialogs.initializedNfd = true;
 
         Runnable runnable = () -> {
-            if (!initializedNfd) {
-                NativeFileDialog.NFD_Init();
-            }
+            try {
+                if (!initializedNfd) {
+                    int initResult = NativeFileDialog.NFD_Init();
 
-            try (MemoryStack stack = MemoryStack.stackPush()) {
-                PointerBuffer out = stack.callocPointer(1);
-
-                StringBuilder filterBuilder = new StringBuilder();
-
-                for (String filter : filters) {
-                    if (!filterBuilder.isEmpty()) filterBuilder.append(",");
-                    filterBuilder.append(filter(filter));
+                    // NFD failed to initialize. Use the Android-safe fallback.
+                    if (initResult != NativeFileDialog.NFD_OKAY) {
+                        future.complete(getFallbackExportPath(defaultName));
+                        currentSaveOrOpenFileDialog = null;
+                        return;
+                    }
                 }
 
-                NFDFilterItem.Buffer filtersBuffer = NFDFilterItem.malloc(1);
-                filtersBuffer.get(0)
-                        .name(stack.UTF8(filter(filterDescription)))
-                        .spec(stack.UTF8(filterBuilder.toString()));
+                try (MemoryStack stack = MemoryStack.stackPush()) {
+                    PointerBuffer out = stack.callocPointer(1);
 
-                int result = NativeFileDialog.NFD_SaveDialog(out, filtersBuffer, filter(defaultPath), filter(defaultName));
+                    StringBuilder filterBuilder = new StringBuilder();
 
-                if (result != NativeFileDialog.NFD_OKAY) {
-                    currentSaveOrOpenFileDialog.complete(null);
-                    currentSaveOrOpenFileDialog = null;
-                } else {
-                    currentSaveOrOpenFileDialog.complete(out.getStringUTF8(0));
-                    currentSaveOrOpenFileDialog = null;
-                    NativeFileDialog.NFD_FreePath(out.get(0));
+                    for (String filter : filters) {
+                        if (!filterBuilder.isEmpty()) filterBuilder.append(",");
+                        filterBuilder.append(filter(filter));
+                    }
+
+                    NFDFilterItem.Buffer filtersBuffer = NFDFilterItem.malloc(1);
+                    filtersBuffer.get(0)
+                            .name(stack.UTF8(filter(filterDescription)))
+                            .spec(stack.UTF8(filterBuilder.toString()));
+
+                    int result = NativeFileDialog.NFD_SaveDialog(
+                            out,
+                            filtersBuffer,
+                            filter(defaultPath),
+                            filter(defaultName)
+                    );
+
+                    if (result != NativeFileDialog.NFD_OKAY) {
+                        // A normal cancel is still a cancel. Do not silently save somewhere else.
+                        future.complete(null);
+                        currentSaveOrOpenFileDialog = null;
+                    } else {
+                        String selectedPath = out.getStringUTF8(0);
+                        future.complete(selectedPath);
+                        currentSaveOrOpenFileDialog = null;
+
+                        if (out.get(0) != 0) {
+                            NativeFileDialog.NFD_FreePath(out.get(0));
+                        }
+                    }
                 }
             } catch (Throwable t) {
+                // Android launchers may not provide NFD/native dialogs.
+                // Fall back to the game's flashback/exports directory.
                 t.printStackTrace();
+                future.complete(getFallbackExportPath(defaultName));
+                currentSaveOrOpenFileDialog = null;
             } finally {
                 if (currentSaveOrOpenFileDialog != null) {
-                    currentSaveOrOpenFileDialog.complete(null);
                     currentSaveOrOpenFileDialog = null;
                 }
             }
@@ -92,40 +147,56 @@ public class AsyncFileDialogs {
         AsyncFileDialogs.initializedNfd = true;
 
         Runnable runnable = () -> {
-            if (!initializedNfd) {
-                NativeFileDialog.NFD_Init();
-            }
+            try {
+                if (!initializedNfd) {
+                    int initResult = NativeFileDialog.NFD_Init();
 
-            try (MemoryStack stack = MemoryStack.stackPush()) {
-                PointerBuffer out = stack.callocPointer(1);
-
-                StringBuilder filterBuilder = new StringBuilder();
-
-                for (String filter : filters) {
-                    if (!filterBuilder.isEmpty()) filterBuilder.append(",");
-                    filterBuilder.append(filter(filter));
+                    if (initResult != NativeFileDialog.NFD_OKAY) {
+                        future.complete(null);
+                        currentSaveOrOpenFileDialog = null;
+                        return;
+                    }
                 }
 
-                NFDFilterItem.Buffer filtersBuffer = NFDFilterItem.malloc(1);
-                filtersBuffer.get(0)
-                             .name(stack.UTF8(filter(filterDescription)))
-                             .spec(stack.UTF8(filterBuilder.toString()));
+                try (MemoryStack stack = MemoryStack.stackPush()) {
+                    PointerBuffer out = stack.callocPointer(1);
 
-                int result = NativeFileDialog.NFD_OpenDialog(out, filtersBuffer, filter(defaultPath));
+                    StringBuilder filterBuilder = new StringBuilder();
 
-                if (result != NativeFileDialog.NFD_OKAY) {
-                    currentSaveOrOpenFileDialog.complete(null);
-                    currentSaveOrOpenFileDialog = null;
-                } else {
-                    currentSaveOrOpenFileDialog.complete(out.getStringUTF8(0));
-                    currentSaveOrOpenFileDialog = null;
-                    NativeFileDialog.NFD_FreePath(out.get(0));
+                    for (String filter : filters) {
+                        if (!filterBuilder.isEmpty()) filterBuilder.append(",");
+                        filterBuilder.append(filter(filter));
+                    }
+
+                    NFDFilterItem.Buffer filtersBuffer = NFDFilterItem.malloc(1);
+                    filtersBuffer.get(0)
+                                 .name(stack.UTF8(filter(filterDescription)))
+                                 .spec(stack.UTF8(filterBuilder.toString()));
+
+                    int result = NativeFileDialog.NFD_OpenDialog(
+                            out,
+                            filtersBuffer,
+                            filter(defaultPath)
+                    );
+
+                    if (result != NativeFileDialog.NFD_OKAY) {
+                        future.complete(null);
+                        currentSaveOrOpenFileDialog = null;
+                    } else {
+                        future.complete(out.getStringUTF8(0));
+                        currentSaveOrOpenFileDialog = null;
+
+                        if (out.get(0) != 0) {
+                            NativeFileDialog.NFD_FreePath(out.get(0));
+                        }
+                    }
                 }
             } catch (Throwable t) {
                 t.printStackTrace();
+                future.complete(null);
+                currentSaveOrOpenFileDialog = null;
             } finally {
                 if (currentSaveOrOpenFileDialog != null) {
-                    currentSaveOrOpenFileDialog.complete(null);
                     currentSaveOrOpenFileDialog = null;
                 }
             }
@@ -151,28 +222,40 @@ public class AsyncFileDialogs {
         AsyncFileDialogs.initializedNfd = true;
 
         Runnable runnable = () -> {
-            if (!initializedNfd) {
-                NativeFileDialog.NFD_Init();
-            }
+            try {
+                if (!initializedNfd) {
+                    int initResult = NativeFileDialog.NFD_Init();
 
-            try (MemoryStack stack = MemoryStack.stackPush()) {
-                PointerBuffer out = stack.callocPointer(1);
+                    if (initResult != NativeFileDialog.NFD_OKAY) {
+                        future.complete(null);
+                        currentSaveOrOpenFileDialog = null;
+                        return;
+                    }
+                }
 
-                int result = NativeFileDialog.NFD_PickFolder(out, filter(defaultPath));
+                try (MemoryStack stack = MemoryStack.stackPush()) {
+                    PointerBuffer out = stack.callocPointer(1);
 
-                if (result != NativeFileDialog.NFD_OKAY) {
-                    currentSaveOrOpenFileDialog.complete(null);
-                    currentSaveOrOpenFileDialog = null;
-                } else {
-                    currentSaveOrOpenFileDialog.complete(out.getStringUTF8(0));
-                    currentSaveOrOpenFileDialog = null;
-                    NativeFileDialog.NFD_FreePath(out.get(0));
+                    int result = NativeFileDialog.NFD_PickFolder(out, filter(defaultPath));
+
+                    if (result != NativeFileDialog.NFD_OKAY) {
+                        future.complete(null);
+                        currentSaveOrOpenFileDialog = null;
+                    } else {
+                        future.complete(out.getStringUTF8(0));
+                        currentSaveOrOpenFileDialog = null;
+
+                        if (out.get(0) != 0) {
+                            NativeFileDialog.NFD_FreePath(out.get(0));
+                        }
+                    }
                 }
             } catch (Throwable t) {
                 t.printStackTrace();
+                future.complete(null);
+                currentSaveOrOpenFileDialog = null;
             } finally {
                 if (currentSaveOrOpenFileDialog != null) {
-                    currentSaveOrOpenFileDialog.complete(null);
                     currentSaveOrOpenFileDialog = null;
                 }
             }
