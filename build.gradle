@@ -111,20 +111,16 @@ dependencies {
         exclude group: "org.bytedeco", module: "javacpp"
     })
     // Include bytedeco ffmpeg & natives
-    shadow(implementation(group: "org.bytedeco", name: "ffmpeg", version: "8.1.2-1.5.14", classifier: ""))
-    shadow(api(rootProject.files('ffmpeg/ffmpeg-natives-linux.jar'))) // Custom natives are from https://github.com/BtbN/FFmpeg-Builds/
-    shadow(api(rootProject.files('ffmpeg/ffmpeg-natives-windows.jar')))
-    shadow(implementation(group: "org.bytedeco", name: "ffmpeg", version: "8.1.2-1.5.14", classifier: "macosx-x86_64"))
-    shadow(implementation(group: "org.bytedeco", name: "ffmpeg", version: "8.1.2-1.5.14", classifier: "macosx-arm64"))
+    //shadow(implementation(group: "org.bytedeco", name: "ffmpeg", version: "8.1.2-1.5.14", classifier: ""))
+    shadow(implementation(rootProject.files("ffmpeg/ffmpeg.jar")))
+    shadow(api(rootProject.files("ffmpeg/ffmpeg-android-arm64-gpl.jar")))
     // Include only platforms we use
-    shadow(implementation(group: "org.bytedeco", name: "javacpp", version: "1.5.14", classifier: "linux-x86_64"))
-    shadow(implementation(group: "org.bytedeco", name: "javacpp", version: "1.5.14", classifier: "windows-x86_64"))
-    shadow(implementation(group: "org.bytedeco", name: "javacpp", version: "1.5.14", classifier: "macosx-x86_64"))
-    shadow(implementation(group: "org.bytedeco", name: "javacpp", version: "1.5.14", classifier: "macosx-arm64"))
+    shadow(implementation(rootProject.files('ffmpeg/javacpp.jar')))
+    shadow(api(rootProject.files('ffmpeg/javacpp-android-arm64.jar')))
 
     // ImGui
-    shadow(implementation(rootProject.files('deps/imgui-binding-1.90.0.jar')))
-    shadow(api(rootProject.files('deps/imgui-natives.jar')))
+    shadow(implementation(rootProject.files('deps/imgui-binding-1.92.jar')))
+    shadow(api(rootProject.files('deps/imgui-java-natives-android.jar')))
 
     // Native File Dialogs
     String nfdVersion = "org.lwjgl:lwjgl-nfd:3.3.3";

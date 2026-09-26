@@ -431,8 +431,10 @@ public class AsyncFFmpegVideoWriter implements AutoCloseable, VideoWriter {
                 src.close();
             }
         }
-        for (ImageFrame src : this.encodeQueue) {
-            src.close();
+        if (this.encodeQueue != null) {
+            for (ImageFrame src : this.encodeQueue) {
+                src.close();
+            }
         }
 
         this.finishRescaleThread.set(true);

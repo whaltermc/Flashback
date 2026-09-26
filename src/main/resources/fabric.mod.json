@@ -2,7 +2,7 @@
 	"schemaVersion": 1,
 	"id": "flashback",
 	"version": "${version}",
-	"name": "Flashback",
+	"name": "Flashback Redroided",
 	"description": "Record your gameplay, view the recordings and export cinematic shots",
 	"authors": [
 		"Moulberry"

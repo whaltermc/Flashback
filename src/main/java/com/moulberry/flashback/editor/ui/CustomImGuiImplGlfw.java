@@ -4,26 +4,26 @@ import com.moulberry.flashback.Flashback;
 import com.moulberry.flashback.editor.keybinds.Keybind;
 import com.moulberry.flashback.editor.keybinds.Keybinds;
 import com.moulberry.flashback.exporting.AsyncFileDialogs;
-import imgui.moulberry90.ImGui;
-import imgui.moulberry90.ImGuiIO;
-import imgui.moulberry90.ImGuiPlatformIO;
-import imgui.moulberry90.ImGuiViewport;
-import imgui.moulberry90.ImVec2;
-import imgui.moulberry90.callback.ImPlatformFuncViewport;
-import imgui.moulberry90.callback.ImPlatformFuncViewportFloat;
-import imgui.moulberry90.callback.ImPlatformFuncViewportImVec2;
-import imgui.moulberry90.callback.ImPlatformFuncViewportString;
-import imgui.moulberry90.callback.ImPlatformFuncViewportSuppBoolean;
-import imgui.moulberry90.callback.ImPlatformFuncViewportSuppImVec2;
-import imgui.moulberry90.callback.ImStrConsumer;
-import imgui.moulberry90.callback.ImStrSupplier;
-import imgui.moulberry90.flag.ImGuiBackendFlags;
-import imgui.moulberry90.flag.ImGuiConfigFlags;
-import imgui.moulberry90.flag.ImGuiKey;
-import imgui.moulberry90.flag.ImGuiMouseButton;
-import imgui.moulberry90.flag.ImGuiMouseCursor;
-import imgui.moulberry90.flag.ImGuiViewportFlags;
-import imgui.moulberry90.glfw.ImGuiImplGlfwNative;
+import imgui.moulberry92.ImGui;
+import imgui.moulberry92.ImGuiIO;
+import imgui.moulberry92.ImGuiPlatformIO;
+import imgui.moulberry92.ImGuiViewport;
+import imgui.moulberry92.ImVec2;
+import imgui.moulberry92.callback.ImPlatformFuncViewport;
+import imgui.moulberry92.callback.ImPlatformFuncViewportFloat;
+import imgui.moulberry92.callback.ImPlatformFuncViewportImVec2;
+import imgui.moulberry92.callback.ImPlatformFuncViewportString;
+import imgui.moulberry92.callback.ImPlatformFuncViewportSuppBoolean;
+import imgui.moulberry92.callback.ImPlatformFuncViewportSuppImVec2;
+import imgui.moulberry92.callback.ImStrConsumer;
+import imgui.moulberry92.callback.ImStrSupplier;
+import imgui.moulberry92.flag.ImGuiBackendFlags;
+import imgui.moulberry92.flag.ImGuiConfigFlags;
+import imgui.moulberry92.flag.ImGuiKey;
+import imgui.moulberry92.flag.ImGuiMouseButton;
+import imgui.moulberry92.flag.ImGuiMouseCursor;
+import imgui.moulberry92.flag.ImGuiViewportFlags;
+import imgui.moulberry92.lwjgl3.glfw.ImGuiImplGlfwNative;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.KeyboardHandler;
 import net.minecraft.client.Minecraft;
@@ -454,10 +454,10 @@ public class CustomImGuiImplGlfw {
     // See https://github.com/ocornut/imgui/issues/6034 and https://github.com/glfw/glfw/issues/1630
     protected void updateKeyModifiers(final long window) {
         final ImGuiIO io = ReplayUI.getIO();
-        io.addKeyEvent(ImGuiKey.ModCtrl, (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) || (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS));
-        io.addKeyEvent(ImGuiKey.ModShift, (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) || (glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS));
-        io.addKeyEvent(ImGuiKey.ModAlt, (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS) || (glfwGetKey(window, GLFW_KEY_RIGHT_ALT) == GLFW_PRESS));
-        io.addKeyEvent(ImGuiKey.ModSuper, (glfwGetKey(window, GLFW_KEY_LEFT_SUPER) == GLFW_PRESS) || (glfwGetKey(window, GLFW_KEY_RIGHT_SUPER) == GLFW_PRESS));
+        io.setKeyCtrl( (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) || (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS));
+        io.setKeyShift( (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) || (glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS));
+        io.setKeyAlt( (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS) || (glfwGetKey(window, GLFW_KEY_RIGHT_ALT) == GLFW_PRESS));
+        io.setKeySuper( (glfwGetKey(window, GLFW_KEY_LEFT_SUPER) == GLFW_PRESS) || (glfwGetKey(window, GLFW_KEY_RIGHT_SUPER) == GLFW_PRESS));
     }
 
     /**
@@ -1069,8 +1069,11 @@ public class CustomImGuiImplGlfw {
 
             // Set OS mouse position from Dear ImGui if requested (rarely used, only when ImGuiConfigFlags_NavEnableSetMousePos is enabled by user)
             // (When multi-viewports are enabled, all Dear ImGui positions are same as OS positions)
+            // Do not let ImGui warp the Android/launcher cursor. Android GLFW
+            // implementations may emulate cursor positioning by moving it to a
+            // synthetic/center position.
             if (io.getWantSetMousePos() && focused) {
-                glfwSetCursorPos(windowPtr, this.mousePosBackup.x - viewport.getPosX(), this.mousePosBackup.y - viewport.getPosY());
+                // Intentionally ignored on Android.
             }
 
             // Set Dear ImGui mouse position from OS position
@@ -1110,10 +1113,22 @@ public class CustomImGuiImplGlfw {
                 // Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
                 glfwSetInputMode(windowPtr, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
             } else {
-                // Show OS mouse cursor
-                // FIXME-PLATFORM: Unfocused windows seems to fail changing the mouse cursor with GLFW 3.2, but 3.3 works here.
-                glfwSetCursor(windowPtr, this.mouseCursors[imguiCursor] != 0 ? this.mouseCursors[imguiCursor] : this.mouseCursors[ImGuiMouseCursor.Arrow]);
-                glfwSetInputMode(windowPtr, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+                // Show OS mouse cursor.
+                //
+                // IMPORTANT FOR ANDROID/ZA LITH GLFW:
+                // Do NOT call glfwSetInputMode(..., GLFW_CURSOR_NORMAL) every frame.
+                // Some Android GLFW implementations reposition/recenter the virtual
+                // cursor when the cursor mode is changed. ImGui changes its cursor
+                // shape when hovering widgets, so doing this here makes the cursor
+                // jump to the center whenever a button is hovered.
+                //
+                // The cursor is already NORMAL when this method is reached unless
+                // something explicitly changed it elsewhere. Only update the cursor
+                // shape here.
+                glfwSetCursor(windowPtr,
+                        this.mouseCursors[imguiCursor] != 0
+                                ? this.mouseCursors[imguiCursor]
+                                : this.mouseCursors[ImGuiMouseCursor.Arrow]);
             }
         }
     }
