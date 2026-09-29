@@ -54,29 +54,49 @@ public class SaveableFramebuffer implements AutoCloseable {
     }
 
     public NativeImage finishDownload(int width, int height) {
-        if (!this.isDownloading) {
-            throw new IllegalStateException("Can't finish downloading before download has started");
-        }
-        this.isDownloading = false;
-
-        NativeImage nativeImage = new NativeImage(NativeImage.Format.RGBA, width, height, false);
-
-        GL30C.glBindBuffer(GL30C.GL_PIXEL_PACK_BUFFER, this.pboId);
-        ByteBuffer buffer = GL30C.glMapBuffer(GL30C.GL_PIXEL_PACK_BUFFER, GL30C.GL_READ_ONLY);
-
-        if (buffer == null) {
-            throw new IllegalStateException("OpenGL error occurred while mapping buffer");
-        }
-
-        // Copy bytes
-        MemoryUtil.memCopy(MemoryUtil.memAddress(buffer), nativeImage.pixels, nativeImage.size);
-
-        GL30C.glUnmapBuffer(GL30C.GL_PIXEL_PACK_BUFFER);
-        GL30C.glBindBuffer(GL30C.GL_PIXEL_PACK_BUFFER, 0);
-
-        return nativeImage;
+    if (!this.isDownloading) {
+        throw new IllegalStateException("Can't finish downloading before download has started");
     }
 
+    this.isDownloading = false;
+
+    NativeImage nativeImage =
+            new NativeImage(NativeImage.Format.RGBA, width, height, false);
+
+    GL30C.glBindBuffer(GL30C.GL_PIXEL_PACK_BUFFER, this.pboId);
+
+    long size = (long) width * height * 4L;
+
+    ByteBuffer buffer = GL30C.glMapBufferRange(
+            GL30C.GL_PIXEL_PACK_BUFFER,
+            0,
+            size,
+            GL30C.GL_MAP_READ_BIT
+    );
+
+    if (buffer == null) {
+        int error = GL30C.glGetError();
+
+        GL30C.glBindBuffer(GL30C.GL_PIXEL_PACK_BUFFER, 0);
+        nativeImage.close();
+
+        throw new IllegalStateException(
+                "OpenGL error occurred while mapping buffer with glMapBufferRange: 0x"
+                        + Integer.toHexString(error)
+        );
+    }
+
+    MemoryUtil.memCopy(
+            MemoryUtil.memAddress(buffer),
+            nativeImage.pixels,
+            nativeImage.size
+    );
+
+    GL30C.glUnmapBuffer(GL30C.GL_PIXEL_PACK_BUFFER);
+    GL30C.glBindBuffer(GL30C.GL_PIXEL_PACK_BUFFER, 0);
+
+    return nativeImage;
+}
     public void close() {
         if (this.pboId != -1) {
             GL30C.glDeleteBuffers(this.pboId);

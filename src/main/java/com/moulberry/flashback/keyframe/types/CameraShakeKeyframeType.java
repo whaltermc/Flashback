@@ -12,7 +12,7 @@ import com.moulberry.flashback.keyframe.impl.TickrateKeyframe;
 import com.moulberry.flashback.playback.ReplayServer;
 import com.moulberry.flashback.state.EditorState;
 import com.moulberry.flashback.state.EditorStateManager;
-import imgui.moulberry90.ImGui;
+import imgui.moulberry92.ImGui;
 import net.minecraft.client.resources.language.I18n;
 import org.jetbrains.annotations.Nullable;
 

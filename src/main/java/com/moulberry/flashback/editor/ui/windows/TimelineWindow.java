@@ -28,19 +28,19 @@ import com.moulberry.flashback.playback.ReplayServer;
 import com.moulberry.flashback.editor.ui.ImGuiHelper;
 import com.moulberry.flashback.record.FlashbackMeta;
 import com.moulberry.flashback.state.KeyframeTrack;
-import imgui.moulberry90.ImDrawList;
-import imgui.moulberry90.ImGui;
-import imgui.moulberry90.ImVec4;
-import imgui.moulberry90.flag.ImGuiCol;
-import imgui.moulberry90.flag.ImGuiComboFlags;
-import imgui.moulberry90.flag.ImGuiHoveredFlags;
-import imgui.moulberry90.flag.ImGuiInputTextFlags;
-import imgui.moulberry90.flag.ImGuiMouseButton;
-import imgui.moulberry90.flag.ImGuiMouseCursor;
-import imgui.moulberry90.flag.ImGuiPopupFlags;
-import imgui.moulberry90.flag.ImGuiStyleVar;
-import imgui.moulberry90.flag.ImGuiWindowFlags;
-import imgui.moulberry90.type.ImString;
+import imgui.moulberry92.ImDrawList;
+import imgui.moulberry92.ImGui;
+import imgui.moulberry92.ImVec4;
+import imgui.moulberry92.flag.ImGuiCol;
+import imgui.moulberry92.flag.ImGuiComboFlags;
+import imgui.moulberry92.flag.ImGuiHoveredFlags;
+import imgui.moulberry92.flag.ImGuiInputTextFlags;
+import imgui.moulberry92.flag.ImGuiMouseButton;
+import imgui.moulberry92.flag.ImGuiMouseCursor;
+import imgui.moulberry92.flag.ImGuiPopupFlags;
+import imgui.moulberry92.flag.ImGuiStyleVar;
+import imgui.moulberry92.flag.ImGuiWindowFlags;
+import imgui.moulberry92.type.ImString;
 import it.unimi.dsi.fastutil.ints.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
@@ -288,8 +288,8 @@ public class TimelineWindow {
         }
 
         if (grabbedPlayback && !editorScene.keyframeTracks.isEmpty()) {
-            boolean isCtrlDown = ImGui.isKeyDown(GLFW.GLFW_KEY_LEFT_CONTROL) || ImGui.isKeyDown(GLFW.GLFW_KEY_RIGHT_CONTROL);
-            boolean isShiftDown = ImGui.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT) || ImGui.isKeyDown(GLFW.GLFW_KEY_RIGHT_SHIFT);
+            boolean isCtrlDown = ImGui.isKeyDown(ImGuiHelper.key(GLFW.GLFW_KEY_LEFT_CONTROL)) || ImGui.isKeyDown(ImGuiHelper.key(GLFW.GLFW_KEY_RIGHT_CONTROL));
+            boolean isShiftDown = ImGui.isKeyDown(ImGuiHelper.key(GLFW.GLFW_KEY_LEFT_SHIFT)) || ImGui.isKeyDown(ImGuiHelper.key(GLFW.GLFW_KEY_RIGHT_SHIFT));
 
             if (isShiftDown) {
                 int closestTick = findClosestKeyframeForSnap(cursorTicks);
@@ -611,7 +611,7 @@ public class TimelineWindow {
 
                     int target = timelineXToReplayTick(mouseX - x);
 
-                    if (ImGui.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT) || ImGui.isKeyDown(GLFW.GLFW_KEY_RIGHT_SHIFT)) {
+                    if (ImGui.isKeyDown(ImGuiHelper.key(GLFW.GLFW_KEY_LEFT_SHIFT)) || ImGui.isKeyDown(ImGuiHelper.key(GLFW.GLFW_KEY_RIGHT_SHIFT))) {
                         int closestTick = findClosestKeyframeForSnap(target);
                         if (closestTick != -1) {
                             target = closestTick;
@@ -627,7 +627,7 @@ public class TimelineWindow {
 
                     int target = timelineXToReplayTick(mouseX - x);
 
-                    if (ImGui.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT) || ImGui.isKeyDown(GLFW.GLFW_KEY_RIGHT_SHIFT)) {
+                    if (ImGui.isKeyDown(ImGuiHelper.key(GLFW.GLFW_KEY_LEFT_SHIFT)) || ImGui.isKeyDown(ImGuiHelper.key(GLFW.GLFW_KEY_RIGHT_SHIFT))) {
                         int closestTick = findClosestKeyframeForSnap(target);
                         if (closestTick != -1) {
                             target = closestTick;
@@ -665,7 +665,7 @@ public class TimelineWindow {
                 if (grabbedPlayback) {
                     int desiredTick = timelineXToReplayTick(mouseX - x);
 
-                    if (ImGui.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT) || ImGui.isKeyDown(GLFW.GLFW_KEY_RIGHT_SHIFT)) {
+                    if (ImGui.isKeyDown(ImGuiHelper.key(GLFW.GLFW_KEY_LEFT_SHIFT)) || ImGui.isKeyDown(ImGuiHelper.key(GLFW.GLFW_KEY_RIGHT_SHIFT))) {
                         int closestTick = findClosestKeyframeForSnap(desiredTick);
                         if (closestTick != -1) {
                             desiredTick = closestTick;
@@ -723,30 +723,30 @@ public class TimelineWindow {
     }
 
     private static void handleKeyPresses(ReplayServer replayServer, int cursorTicks, int totalTicks) {
-        boolean pressedIn = ImGui.isKeyPressed(GLFW.GLFW_KEY_I, false);
-        boolean pressedOut = ImGui.isKeyPressed(GLFW.GLFW_KEY_O, false);
+        boolean pressedIn = ImGui.isKeyPressed(ImGuiHelper.key(GLFW.GLFW_KEY_I), false);
+        boolean pressedOut = ImGui.isKeyPressed(ImGuiHelper.key(GLFW.GLFW_KEY_O), false);
 
-        boolean ctrlPressed = Minecraft.ON_OSX ? ImGui.isKeyDown(GLFW.GLFW_KEY_LEFT_SUPER) : ImGui.isKeyDown(GLFW.GLFW_KEY_LEFT_CONTROL);
-        boolean pressedCopy = ctrlPressed && ImGui.isKeyPressed(GLFW.GLFW_KEY_C, false);
-        boolean pressedPaste = ctrlPressed && ImGui.isKeyPressed(GLFW.GLFW_KEY_V, false);
+        boolean ctrlPressed = Minecraft.ON_OSX ? ImGui.isKeyDown(ImGuiHelper.key(GLFW.GLFW_KEY_LEFT_SUPER)) : ImGui.isKeyDown(ImGuiHelper.key(GLFW.GLFW_KEY_LEFT_CONTROL));
+        boolean pressedCopy = ctrlPressed && ImGui.isKeyPressed(ImGuiHelper.key(GLFW.GLFW_KEY_C), false);
+        boolean pressedPaste = ctrlPressed && ImGui.isKeyPressed(ImGuiHelper.key(GLFW.GLFW_KEY_V), false);
 
-        boolean pressedDelete = ImGui.isKeyPressed(GLFW.GLFW_KEY_DELETE, false) || ImGui.isKeyPressed(GLFW.GLFW_KEY_BACKSPACE, false);
+        boolean pressedDelete = ImGui.isKeyPressed(ImGuiHelper.key(GLFW.GLFW_KEY_DELETE), false) || ImGui.isKeyPressed(ImGuiHelper.key(GLFW.GLFW_KEY_BACKSPACE), false);
 
-        if (ImGui.isKeyPressed(GLFW.GLFW_KEY_P, false)) {
+        if (ImGui.isKeyPressed(ImGuiHelper.key(GLFW.GLFW_KEY_P), false)) {
             togglePaused(replayServer);
         }
-        if (ImGui.isKeyPressed(GLFW.GLFW_KEY_LEFT, false)) {
+        if (ImGui.isKeyPressed(ImGuiHelper.key(GLFW.GLFW_KEY_LEFT), false)) {
             pendingStepBackwardsTicks += ReplayUI.isCtrlOrCmdDown() ? 5 : 1;
-        } else if (pendingStepBackwardsTicks > 0 && !ImGui.isKeyDown(GLFW.GLFW_KEY_LEFT)) {
+        } else if (pendingStepBackwardsTicks > 0 && !ImGui.isKeyDown(ImGuiHelper.key(GLFW.GLFW_KEY_LEFT))) {
             replayServer.goToReplayTick(Math.max(0, replayServer.getReplayTick() - pendingStepBackwardsTicks));
             replayServer.forceApplyKeyframes.set(true);
             pendingStepBackwardsTicks = 0;
         }
-        if (ImGui.isKeyPressed(GLFW.GLFW_KEY_RIGHT, false)) {
+        if (ImGui.isKeyPressed(ImGuiHelper.key(GLFW.GLFW_KEY_RIGHT), false)) {
             replayServer.goToReplayTick(Math.min(totalTicks, cursorTicks + (ReplayUI.isCtrlOrCmdDown() ? 5 : 1)));
             replayServer.forceApplyKeyframes.set(true);
         }
-        if (ImGui.isKeyPressed(GLFW.GLFW_KEY_UP, false)) {
+        if (ImGui.isKeyPressed(ImGuiHelper.key(GLFW.GLFW_KEY_UP), false)) {
             int nextKeyframeTick;
             if (editorScene.exportStartTicks >= 0 && editorScene.exportStartTicks > cursorTicks) {
                 nextKeyframeTick = editorScene.exportStartTicks;
@@ -771,7 +771,7 @@ public class TimelineWindow {
             replayServer.goToReplayTick(nextKeyframeTick);
             replayServer.forceApplyKeyframes.set(true);
         }
-        if (ImGui.isKeyPressed(GLFW.GLFW_KEY_DOWN, false)) {
+        if (ImGui.isKeyPressed(ImGuiHelper.key(GLFW.GLFW_KEY_DOWN), false)) {
             int previousKeyframeTick;
             if (editorScene.exportEndTicks >= 0 && editorScene.exportEndTicks < cursorTicks) {
                 previousKeyframeTick = editorScene.exportEndTicks;
@@ -796,12 +796,12 @@ public class TimelineWindow {
             replayServer.goToReplayTick(previousKeyframeTick);
             replayServer.forceApplyKeyframes.set(true);
         }
-        if (ImGui.isKeyPressed(GLFW.GLFW_KEY_Z, false) && (ImGui.isKeyDown(GLFW.GLFW_KEY_LEFT_CONTROL) || ImGui.isKeyDown(GLFW.GLFW_KEY_RIGHT_CONTROL))) {
+        if (ImGui.isKeyPressed(ImGuiHelper.key(GLFW.GLFW_KEY_Z), false) && (ImGui.isKeyDown(ImGuiHelper.key(GLFW.GLFW_KEY_LEFT_CONTROL)) || ImGui.isKeyDown(ImGuiHelper.key(GLFW.GLFW_KEY_RIGHT_CONTROL)))) {
             upgradeToSceneWrite();
             editorScene.undo(ReplayUI::setInfoOverlayShort);
             editorState.markDirty();
         }
-        if (ImGui.isKeyPressed(GLFW.GLFW_KEY_Y, false) && (ImGui.isKeyDown(GLFW.GLFW_KEY_LEFT_CONTROL) || ImGui.isKeyDown(GLFW.GLFW_KEY_RIGHT_CONTROL))) {
+        if (ImGui.isKeyPressed(ImGuiHelper.key(GLFW.GLFW_KEY_Y), false) && (ImGui.isKeyDown(ImGuiHelper.key(GLFW.GLFW_KEY_LEFT_CONTROL)) || ImGui.isKeyDown(ImGuiHelper.key(GLFW.GLFW_KEY_RIGHT_CONTROL)))) {
             upgradeToSceneWrite();
             editorScene.redo(ReplayUI::setInfoOverlayShort);
             editorState.markDirty();
@@ -1396,7 +1396,7 @@ public class TimelineWindow {
         if (grabbedPlayback) {
             int desiredTick = timelineXToReplayTick(mouseX - x);
 
-            if (ImGui.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT) || ImGui.isKeyDown(GLFW.GLFW_KEY_RIGHT_SHIFT)) {
+            if (ImGui.isKeyDown(ImGuiHelper.key(GLFW.GLFW_KEY_LEFT_SHIFT)) || ImGui.isKeyDown(ImGuiHelper.key(GLFW.GLFW_KEY_RIGHT_SHIFT))) {
                 int closestTick = findClosestKeyframeForSnap(desiredTick);
                 if (closestTick != -1) {
                     desiredTick = closestTick;
@@ -1496,7 +1496,7 @@ public class TimelineWindow {
             grabbedKeyframe = false;
         }
 
-        if (pendingStepBackwardsTicks > 0 && !ImGui.isKeyDown(GLFW.GLFW_KEY_LEFT)) {
+        if (pendingStepBackwardsTicks > 0 && !ImGui.isKeyDown(ImGuiHelper.key(GLFW.GLFW_KEY_LEFT))) {
             replayServer.goToReplayTick(Math.max(0, replayServer.getReplayTick() - pendingStepBackwardsTicks));
             replayServer.forceApplyKeyframes.set(true);
             pendingStepBackwardsTicks = 0;
@@ -1510,7 +1510,7 @@ public class TimelineWindow {
         int grabbedScalePivotTick = -1;
         float grabbedScaleFactor = 0f;
 
-        if (ImGui.isKeyDown(GLFW.GLFW_KEY_LEFT_ALT) || ImGui.isKeyDown(GLFW.GLFW_KEY_RIGHT_ALT)) {
+        if (ImGui.isKeyDown(ImGuiHelper.key(GLFW.GLFW_KEY_LEFT_ALT)) || ImGui.isKeyDown(ImGuiHelper.key(GLFW.GLFW_KEY_RIGHT_ALT))) {
             int minTick = totalTicks;
             int maxTick = 0;
 
@@ -1547,7 +1547,7 @@ public class TimelineWindow {
             enableKeyframeMovement = true;
             grabbedDelta = timelineDeltaToReplayTickDelta(mouseX - grabbedKeyframeMouseX);
 
-            boolean isShiftDown = ImGui.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT) || ImGui.isKeyDown(GLFW.GLFW_KEY_RIGHT_SHIFT);
+            boolean isShiftDown = ImGui.isKeyDown(ImGuiHelper.key(GLFW.GLFW_KEY_LEFT_SHIFT)) || ImGui.isKeyDown(ImGuiHelper.key(GLFW.GLFW_KEY_RIGHT_SHIFT));
 
             if (isShiftDown) {
                 int closestTick = -1;

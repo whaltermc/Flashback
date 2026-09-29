@@ -11,6 +11,7 @@ import org.bytedeco.ffmpeg.avformat.AVFormatContext;
 import org.bytedeco.ffmpeg.avformat.AVIOContext;
 import org.bytedeco.ffmpeg.avformat.AVStream;
 import org.bytedeco.ffmpeg.avformat.Read_packet_Pointer_BytePointer_int;
+import org.bytedeco.ffmpeg.avutil.AVChannelLayout;
 import org.bytedeco.ffmpeg.avutil.AVDictionary;
 import org.bytedeco.ffmpeg.avutil.AVFrame;
 import org.bytedeco.ffmpeg.swresample.SwrContext;
@@ -65,6 +66,8 @@ public class FFmpegAudioReader {
         AVFrame avFrame = null;
         AVPacket avPacket = null;
         SwrContext swrContext = null;
+        AVChannelLayout inLayout = null;
+        AVChannelLayout outLayout = null;
         PointerPointer<BytePointer> planeOutPtr = new PointerPointer<>(AVFrame.AV_NUM_DATA_POINTERS).retainReference();
         PointerPointer<BytePointer> planeInPtr = new PointerPointer<>(AVFrame.AV_NUM_DATA_POINTERS).retainReference();
         BytePointer convertOutPtr = null;
@@ -140,7 +143,7 @@ public class FFmpegAudioReader {
 
             int audioStreamIndex = audioStream.index();
 
-            int originalChannels = codecContext.channels();
+            int originalChannels = codecContext.ch_layout().nb_channels();
             int originalSampleFormat = codecContext.sample_fmt();
             int channels = Math.min(2, originalChannels);
             int sampleFormat = originalSampleFormat;
@@ -153,8 +156,17 @@ public class FFmpegAudioReader {
 
             // Minecraft only supports non-planar signed 8bit/16bit mono/stereo. Need to convert to that.
             if (channels != originalChannels || sampleFormat != originalSampleFormat) {
-                swrContext = swr_alloc_set_opts(null, av_get_default_channel_layout(channels), sampleFormat, sampleRate,
-                        av_get_default_channel_layout(originalChannels), originalSampleFormat, sampleRate, 0, null);
+                // FFmpeg 5.1+/8 removed swr_alloc_set_opts + av_get_default_channel_layout, use the AVChannelLayout API
+                outLayout = new AVChannelLayout();
+                inLayout = new AVChannelLayout();
+                av_channel_layout_default(outLayout, channels);
+                av_channel_layout_default(inLayout, originalChannels);
+
+                PointerPointer<SwrContext> swrPtr = new PointerPointer<>(1);
+                int allocRet = swr_alloc_set_opts2(swrPtr, outLayout, sampleFormat, sampleRate,
+                        inLayout, originalSampleFormat, sampleRate, 0, null);
+                swrContext = allocRet >= 0 && swrPtr.get(0) != null ? new SwrContext(swrPtr.get(0)) : null;
+                swrPtr.close();
                 if (swrContext == null) {
                     Flashback.LOGGER.error("Unable to allocate swr convert context");
                     return null;
@@ -208,7 +220,7 @@ public class FFmpegAudioReader {
                     ByteBuffer outBuffer;
 
                     if (swrContext != null) {
-                        int bufferInPlanes = av_sample_fmt_is_planar(originalSampleFormat) != 0 ? avFrame.channels() : 1;
+                        int bufferInPlanes = av_sample_fmt_is_planar(originalSampleFormat) != 0 ? avFrame.ch_layout().nb_channels() : 1;
                         int samplesIn = avFrame.nb_samples();
                         int bufferInSize = av_samples_get_buffer_size((IntPointer) null, originalChannels,
                                 samplesIn, originalSampleFormat, 1) / bufferInPlanes;
@@ -324,6 +336,14 @@ public class FFmpegAudioReader {
             }
             if (swrContext != null) {
                 swr_free(swrContext);
+            }
+            if (inLayout != null) {
+                av_channel_layout_uninit(inLayout);
+                inLayout.close();
+            }
+            if (outLayout != null) {
+                av_channel_layout_uninit(outLayout);
+                outLayout.close();
             }
         }
     }
