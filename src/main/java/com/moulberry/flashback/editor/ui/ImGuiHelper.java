@@ -1,22 +1,31 @@
 package com.moulberry.flashback.editor.ui;
 
 import com.moulberry.flashback.combo_options.ComboOption;
-import imgui.moulberry90.ImGui;
-import imgui.moulberry90.ImVec2;
-import imgui.moulberry90.flag.ImGuiCol;
-import imgui.moulberry90.flag.ImGuiComboFlags;
-import imgui.moulberry90.flag.ImGuiHoveredFlags;
-import imgui.moulberry90.flag.ImGuiWindowFlags;
-import imgui.moulberry90.type.ImBoolean;
-import imgui.moulberry90.type.ImFloat;
-import imgui.moulberry90.type.ImInt;
-import imgui.moulberry90.type.ImString;
+import imgui.moulberry92.ImGui;
+import imgui.moulberry92.ImVec2;
+import imgui.moulberry92.flag.ImGuiCol;
+import imgui.moulberry92.flag.ImGuiComboFlags;
+import imgui.moulberry92.flag.ImGuiHoveredFlags;
+import imgui.moulberry92.flag.ImGuiWindowFlags;
+import imgui.moulberry92.type.ImBoolean;
+import imgui.moulberry92.type.ImFloat;
+import imgui.moulberry92.type.ImInt;
+import imgui.moulberry92.type.ImString;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class ImGuiHelper {
+
+    /**
+     * Converts a GLFW key code (or Minecraft key value) to an ImGuiKey. ImGui 1.92 dropped support for raw key
+     * indices and asserts (aborting the process on Android) if they are passed to isKeyPressed/isKeyDown/etc.
+     */
+    public static int key(int glfwKey) {
+        return CustomImGuiImplGlfw.glfwKeyToImGuiKey(glfwKey);
+    }
+
 
     public static String getString(ImString string) {
         StringBuilder builder = new StringBuilder();
@@ -371,9 +380,9 @@ public class ImGuiHelper {
                 }
             }
 
-            if (!handledFocusNext && ImGui.isItemActive() && ImGui.isKeyPressed(GLFW.GLFW_KEY_TAB, false)) {
+            if (!handledFocusNext && ImGui.isItemActive() && ImGui.isKeyPressed(ImGuiHelper.key(GLFW.GLFW_KEY_TAB), false)) {
                 handledFocusNext = true;
-                if (ImGui.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT) || ImGui.isKeyDown(GLFW.GLFW_KEY_RIGHT_SHIFT)) {
+                if (ImGui.isKeyDown(ImGuiHelper.key(GLFW.GLFW_KEY_LEFT_SHIFT)) || ImGui.isKeyDown(ImGuiHelper.key(GLFW.GLFW_KEY_RIGHT_SHIFT))) {
                     focusLastIndex = focusIndex - 1;
                 } else {
                     focusNext = true;
@@ -444,9 +453,9 @@ public class ImGuiHelper {
                 }
             }
 
-            if (!handledFocusNext && ImGui.isItemActive() && ImGui.isKeyPressed(GLFW.GLFW_KEY_TAB, false)) {
+            if (!handledFocusNext && ImGui.isItemActive() && ImGui.isKeyPressed(ImGuiHelper.key(GLFW.GLFW_KEY_TAB), false)) {
                 handledFocusNext = true;
-                if (ImGui.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT) || ImGui.isKeyDown(GLFW.GLFW_KEY_RIGHT_SHIFT)) {
+                if (ImGui.isKeyDown(ImGuiHelper.key(GLFW.GLFW_KEY_LEFT_SHIFT)) || ImGui.isKeyDown(ImGuiHelper.key(GLFW.GLFW_KEY_RIGHT_SHIFT))) {
                     focusLastIndex = focusIndex - 1;
                 } else {
                     focusNext = true;

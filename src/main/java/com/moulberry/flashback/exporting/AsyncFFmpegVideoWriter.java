@@ -116,6 +116,9 @@ public class AsyncFFmpegVideoWriter implements AutoCloseable, VideoWriter {
                 height = (int) Math.floor(scaleDownFactor * height);
             }
 
+            width = (width & ~1);
+            height = (height & ~1);
+
             boolean needsRescale = ExportJob.SRC_PIXEL_FORMAT != dstPixelFormat || width != settings.resolutionX() || height != settings.resolutionY();
 
             // 288m is the hard cap of libopenh264. Some encoders e.g. h264_amf support up to 1.1b, but the quality is near identical
@@ -153,6 +156,10 @@ public class AsyncFFmpegVideoWriter implements AutoCloseable, VideoWriter {
             recorder.setFrameRate(fps);
             recorder.setPixelFormat(dstPixelFormat);
             recorder.setGopSize((int) Math.max(20, Math.min(240, Math.ceil(fps * 2))));
+
+            if (settings.encoder() != null && settings.encoder().endsWith("_mediacodec")) {
+                recorder.setVideoOption("ndk_codec", "1");
+            }
 
             if (settings.recordAudio()) {
                 recorder.setAudioCodec(settings.audioCodec().codecId());

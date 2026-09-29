@@ -2,14 +2,15 @@
 	"schemaVersion": 1,
 	"id": "flashback",
 	"version": "${version}",
-	"name": "Flashback",
-	"description": "Record your gameplay, view the recordings and export cinematic shots",
+	"name": "Flashback Redroided",
+	"description": "A fork of Flashback for Android",
 	"authors": [
-		"Moulberry"
+		"Moulberry",
+      "WhalterMc"
 	],
 	"contact": {
-		"homepage": "https://flashback.moulberry.com/",
-		"sources": "https://github.com/Moulberry/Flashback"
+		"homepage": "https://whaltermc.vercel.app/flashback-redroided/",
+		"sources": "https://github.com/whaltermc/Flashback"
 	},
 	"license": "https://github.com/Moulberry/Flashback/blob/master/LICENSE.md",
 	"icon": "assets/flashback/icon.png",

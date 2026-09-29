@@ -111,11 +111,21 @@ dependencies {
         exclude group: "org.bytedeco", module: "tesseract-platform"
         exclude group: "org.bytedeco", module: "videoinput"
         exclude group: "org.bytedeco", module: "videoinput-platform"
+        exclude group: "org.bytedeco", module: "ffmpeg"
+        exclude group: "org.bytedeco", module: "javacpp"
     })
 
+    // Include bytedeco ffmpeg & natives
+    //shadow(implementation(group: "org.bytedeco", name: "ffmpeg", version: "8.1.2-1.5.14", classifier: ""))
+    shadow(implementation(rootProject.files("ffmpeg/ffmpeg.jar")))
+    shadow(api(rootProject.files("ffmpeg/ffmpeg-android-arm64-gpl.jar")))
+    // Include only platforms we use
+    shadow(implementation(rootProject.files('ffmpeg/javacpp.jar')))
+    shadow(api(rootProject.files('ffmpeg/javacpp-android-arm64.jar')))
+
     // ImGui
-    shadow(implementation(rootProject.files('deps/imgui-binding-1.90.0.jar')))
-    shadow(api(rootProject.files('deps/imgui-natives.jar')))
+    shadow(implementation(rootProject.files('deps/imgui-binding-1.92.jar')))
+    shadow(api(rootProject.files('deps/imgui-java-natives-android.jar')))
 
     // Native File Dialogs
     String nfdVersion = "org.lwjgl:lwjgl-nfd:3.3.3";

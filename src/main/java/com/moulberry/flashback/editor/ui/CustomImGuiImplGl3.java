@@ -1,188 +1,89 @@
 package com.moulberry.flashback.editor.ui;
 
-import com.moulberry.flashback.editor.ui.ReplayUI;
-import imgui.moulberry90.ImDrawData;
-import imgui.moulberry90.ImFontAtlas;
-import imgui.moulberry90.ImGui;
-import imgui.moulberry90.ImGuiIO;
-import imgui.moulberry90.ImGuiViewport;
-import imgui.moulberry90.ImVec4;
-import imgui.moulberry90.callback.ImPlatformFuncViewport;
-import imgui.moulberry90.flag.ImGuiBackendFlags;
-import imgui.moulberry90.flag.ImGuiConfigFlags;
-import imgui.moulberry90.flag.ImGuiViewportFlags;
-import imgui.moulberry90.type.ImInt;
+import com.moulberry.flashback.Flashback;
+import com.moulberry.flashback.utils.MobileCompat;
+import imgui.moulberry92.ImDrawData;
+import imgui.moulberry92.ImFontAtlas;
+import imgui.moulberry92.ImGui;
+import imgui.moulberry92.ImGuiIO;
+import imgui.moulberry92.ImGuiViewport;
+import imgui.moulberry92.ImVec4;
+import imgui.moulberry92.callback.ImPlatformFuncViewport;
+import imgui.moulberry92.flag.ImGuiBackendFlags;
+import imgui.moulberry92.flag.ImGuiConfigFlags;
+import imgui.moulberry92.flag.ImGuiViewportFlags;
+import imgui.moulberry92.type.ImInt;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLCapabilities;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.lwjgl.opengl.GL20.glDeleteShader;
-import static org.lwjgl.opengl.GL20.glDetachShader;
-import static org.lwjgl.opengl.GL20.glGetAttribLocation;
-import static org.lwjgl.opengl.GL20.glGetProgramiv;
-import static org.lwjgl.opengl.GL20.glGetUniformLocation;
-import static org.lwjgl.opengl.GL30.*;
-import static org.lwjgl.opengl.GL32.GL_ACTIVE_TEXTURE;
-import static org.lwjgl.opengl.GL32.GL_ARRAY_BUFFER;
-import static org.lwjgl.opengl.GL32.GL_ARRAY_BUFFER_BINDING;
-import static org.lwjgl.opengl.GL32.GL_BACK;
-import static org.lwjgl.opengl.GL32.GL_BLEND;
-import static org.lwjgl.opengl.GL32.GL_BLEND_DST_ALPHA;
-import static org.lwjgl.opengl.GL32.GL_BLEND_DST_RGB;
-import static org.lwjgl.opengl.GL32.GL_BLEND_EQUATION_ALPHA;
-import static org.lwjgl.opengl.GL32.GL_BLEND_EQUATION_RGB;
-import static org.lwjgl.opengl.GL32.GL_BLEND_SRC_ALPHA;
-import static org.lwjgl.opengl.GL32.GL_BLEND_SRC_RGB;
-import static org.lwjgl.opengl.GL32.GL_COLOR_BUFFER_BIT;
-import static org.lwjgl.opengl.GL32.GL_COMPILE_STATUS;
-import static org.lwjgl.opengl.GL32.GL_CONTEXT_COMPATIBILITY_PROFILE_BIT;
-import static org.lwjgl.opengl.GL32.GL_CONTEXT_PROFILE_MASK;
-import static org.lwjgl.opengl.GL32.GL_CULL_FACE;
-import static org.lwjgl.opengl.GL32.GL_CURRENT_PROGRAM;
-import static org.lwjgl.opengl.GL32.GL_DEPTH_TEST;
-import static org.lwjgl.opengl.GL32.GL_ELEMENT_ARRAY_BUFFER;
-import static org.lwjgl.opengl.GL32.GL_FALSE;
-import static org.lwjgl.opengl.GL32.GL_FILL;
-import static org.lwjgl.opengl.GL32.GL_FLOAT;
-import static org.lwjgl.opengl.GL32.GL_FRAGMENT_SHADER;
-import static org.lwjgl.opengl.GL32.GL_FRONT;
-import static org.lwjgl.opengl.GL32.GL_FRONT_AND_BACK;
-import static org.lwjgl.opengl.GL32.GL_FUNC_ADD;
-import static org.lwjgl.opengl.GL32.GL_INFO_LOG_LENGTH;
-import static org.lwjgl.opengl.GL32.GL_LINEAR;
-import static org.lwjgl.opengl.GL32.GL_LINK_STATUS;
-import static org.lwjgl.opengl.GL32.GL_MAJOR_VERSION;
-import static org.lwjgl.opengl.GL32.GL_MINOR_VERSION;
-import static org.lwjgl.opengl.GL32.GL_ONE;
-import static org.lwjgl.opengl.GL32.GL_ONE_MINUS_SRC_ALPHA;
-import static org.lwjgl.opengl.GL32.GL_POLYGON_MODE;
-import static org.lwjgl.opengl.GL32.GL_PRIMITIVE_RESTART;
-import static org.lwjgl.opengl.GL32.GL_RGBA;
-import static org.lwjgl.opengl.GL32.GL_SCISSOR_BOX;
-import static org.lwjgl.opengl.GL32.GL_SCISSOR_TEST;
-import static org.lwjgl.opengl.GL32.GL_SRC_ALPHA;
-import static org.lwjgl.opengl.GL32.GL_STENCIL_TEST;
-import static org.lwjgl.opengl.GL32.GL_STREAM_DRAW;
-import static org.lwjgl.opengl.GL32.GL_TEXTURE0;
-import static org.lwjgl.opengl.GL32.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL32.GL_TEXTURE_BINDING_2D;
-import static org.lwjgl.opengl.GL32.GL_TEXTURE_MAG_FILTER;
-import static org.lwjgl.opengl.GL32.GL_TEXTURE_MIN_FILTER;
-import static org.lwjgl.opengl.GL32.GL_TRIANGLES;
-import static org.lwjgl.opengl.GL32.GL_TRUE;
-import static org.lwjgl.opengl.GL32.GL_UNPACK_ALIGNMENT;
-import static org.lwjgl.opengl.GL32.GL_UNPACK_ROW_LENGTH;
-import static org.lwjgl.opengl.GL32.GL_UNPACK_SKIP_PIXELS;
-import static org.lwjgl.opengl.GL32.GL_UNPACK_SKIP_ROWS;
-import static org.lwjgl.opengl.GL32.GL_UNSIGNED_BYTE;
-import static org.lwjgl.opengl.GL32.GL_UNSIGNED_INT;
-import static org.lwjgl.opengl.GL32.GL_UNSIGNED_SHORT;
-import static org.lwjgl.opengl.GL32.GL_UPPER_LEFT;
-import static org.lwjgl.opengl.GL32.GL_VERSION;
-import static org.lwjgl.opengl.GL32.GL_VERTEX_ARRAY_BINDING;
-import static org.lwjgl.opengl.GL32.GL_VERTEX_SHADER;
-import static org.lwjgl.opengl.GL32.GL_VIEWPORT;
-import static org.lwjgl.opengl.GL32.glActiveTexture;
-import static org.lwjgl.opengl.GL32.glAttachShader;
-import static org.lwjgl.opengl.GL32.glBindBuffer;
-import static org.lwjgl.opengl.GL32.glBindTexture;
-import static org.lwjgl.opengl.GL32.glBindVertexArray;
-import static org.lwjgl.opengl.GL32.glBlendEquation;
-import static org.lwjgl.opengl.GL32.glBlendEquationSeparate;
-import static org.lwjgl.opengl.GL32.glBlendFuncSeparate;
-import static org.lwjgl.opengl.GL32.glBufferData;
-import static org.lwjgl.opengl.GL32.glClear;
-import static org.lwjgl.opengl.GL32.glClearColor;
-import static org.lwjgl.opengl.GL32.glCompileShader;
-import static org.lwjgl.opengl.GL32.glCreateProgram;
-import static org.lwjgl.opengl.GL32.glCreateShader;
-import static org.lwjgl.opengl.GL32.glDeleteBuffers;
-import static org.lwjgl.opengl.GL32.glDeleteProgram;
-import static org.lwjgl.opengl.GL32.glDeleteTextures;
-import static org.lwjgl.opengl.GL32.glDeleteVertexArrays;
-import static org.lwjgl.opengl.GL32.glDisable;
-import static org.lwjgl.opengl.GL32.glDrawElements;
-import static org.lwjgl.opengl.GL32.glDrawElementsBaseVertex;
-import static org.lwjgl.opengl.GL32.glEnable;
-import static org.lwjgl.opengl.GL32.glEnableVertexAttribArray;
-import static org.lwjgl.opengl.GL32.glGenBuffers;
-import static org.lwjgl.opengl.GL32.glGenTextures;
-import static org.lwjgl.opengl.GL32.glGenVertexArrays;
-import static org.lwjgl.opengl.GL32.glGetInteger;
-import static org.lwjgl.opengl.GL32.glGetIntegerv;
-import static org.lwjgl.opengl.GL32.glGetProgramInfoLog;
-import static org.lwjgl.opengl.GL32.glGetShaderInfoLog;
-import static org.lwjgl.opengl.GL32.glGetShaderiv;
-import static org.lwjgl.opengl.GL32.glGetString;
-import static org.lwjgl.opengl.GL32.glIsEnabled;
-import static org.lwjgl.opengl.GL32.glIsProgram;
-import static org.lwjgl.opengl.GL32.glLinkProgram;
-import static org.lwjgl.opengl.GL32.glPixelStorei;
-import static org.lwjgl.opengl.GL32.glPolygonMode;
-import static org.lwjgl.opengl.GL32.glScissor;
-import static org.lwjgl.opengl.GL32.glShaderSource;
-import static org.lwjgl.opengl.GL32.glTexImage2D;
-import static org.lwjgl.opengl.GL32.glTexParameteri;
-import static org.lwjgl.opengl.GL32.glUniform1i;
-import static org.lwjgl.opengl.GL32.glUniformMatrix4fv;
-import static org.lwjgl.opengl.GL32.glUseProgram;
-import static org.lwjgl.opengl.GL32.glVertexAttribPointer;
-import static org.lwjgl.opengl.GL32.glViewport;
-import static org.lwjgl.opengl.GL33.GL_SAMPLER_BINDING;
-import static org.lwjgl.opengl.GL33.glBindSampler;
-import static org.lwjgl.opengl.GL45.GL_CLIP_ORIGIN;
+import static org.lwjgl.opengl.GL33.*;
 
 /**
- * This class is a straightforward port of the
- * <a href="https://raw.githubusercontent.com/ocornut/imgui/1ee252772ae9c0a971d06257bb5c89f628fa696a/backends/imgui_impl_opengl3.cpp">imgui_impl_opengl3.cpp</a>.
+ * Dear ImGui OpenGL renderer that is safe to use on top of OpenGL translation layers
+ * (MobileGlues, gl4es, ANGLE, Zink, ...) as used by Android/iOS launchers, while still behaving like the
+ * regular {@code imgui_impl_opengl3} on desktop.
  * <p>
- * It does support a backup and restoring of the GL state in the same way the original Dear ImGui code does.
- * Some of the very specific OpenGL variables may be ignored here,
- * yet you can copy-paste this class in your codebase and modify the rendering routine in the way you'd like.
- * <p>
- * This implementation has an ability to use a GLSL version provided during the initialization.
- * Please read the documentation for the {@link #init(String)}.
+ * Differences compared to the stock backend:
+ * <ul>
+ *     <li>Never touches desktop-only state on translation layers: {@code glPolygonMode}/{@code GL_POLYGON_MODE},
+ *     {@code GL_PRIMITIVE_RESTART}, {@code GL_CLIP_ORIGIN}, {@code GL_CONTEXT_PROFILE_MASK}.</li>
+ *     <li>{@code glDrawElementsBaseVertex} is emulated by offsetting the vertex attribute pointers, so no
+ *     GL 3.2 / GLES 3.2 entry point is required for large meshes.</li>
+ *     <li>Attribute locations are bound explicitly ({@code glBindAttribLocation}) instead of relying on
+ *     {@code layout(location)} or on the translator keeping names intact.</li>
+ *     <li>Robust GL version parsing (handles {@code "OpenGL ES 3.2 MobileGlues ..."}), GLES detection and
+ *     a chain of GLSL versions that is tried until one compiles and links.</li>
+ *     <li>Persistent VAO instead of creating/deleting one every frame.</li>
+ *     <li>Scissor rectangles are clamped to the framebuffer, GL error state is cleaned after probing.</li>
+ * </ul>
+ * The public API is the same as before ({@link #init(String)}, {@link #newFrame()}, {@link #renderDrawData(ImDrawData)}, ...).
  */
-@SuppressWarnings({"checkstyle:DesignForExtension", "checkstyle:NeedBraces", "checkstyle:LocalVariableName", "checkstyle:FinalLocalVariable", "checkstyle:ParameterName", "checkstyle:EmptyBlock", "checkstyle:AvoidNestedBlocks"})
 public class CustomImGuiImplGl3 {
     protected static final String OS = System.getProperty("os.name", "generic").toLowerCase();
     protected static final boolean IS_APPLE = OS.contains("mac") || OS.contains("darwin");
 
-    /**
-     * Data class to store implementation specific fields.
-     * Same as {@code ImGui_ImplOpenGL3_Data}.
-     */
+    // Constants that are only defined in newer GL versions. Kept as literals so that no newer GL class gets loaded.
+    private static final int GL_CLIP_ORIGIN = 0x935C;
+    private static final int GL_UPPER_LEFT = 0x8CA2;
+
+    // Fixed attribute locations that are bound before linking
+    private static final int LOC_POSITION = 0;
+    private static final int LOC_UV = 1;
+    private static final int LOC_COLOR = 2;
+
     protected static class Data {
-        protected int glVersion = 0; // Extracted at runtime using GL_MAJOR_VERSION, GL_MINOR_VERSION queries (e.g. 320 for GL 3.2)
-        //        protected boolean glProfileIsES2;
-//        protected boolean glProfileIsES3;
-        protected boolean glProfileIsCompat;
-        protected int glProfileMask;
+        protected int glVersion = 0; // e.g. 320 for GL 3.2
+        protected boolean isEs = false;
+        protected boolean glProfileIsCompat = false;
         protected GLCapabilities glCapabilities = null;
         protected String glslVersion = "";
         protected int fontTexture = -1;
         protected int shaderHandle = -1;
-        protected int attribLocationTex = 0; // Uniforms location
+        protected int attribLocationTex = 0;
         protected int attribLocationProjMtx = 0;
-        protected int attribLocationVtxPos = 0; // Vertex attributes location
-        protected int attribLocationVtxUV = 0;
-        protected int attribLocationVtxColor = 0;
+        protected int attribLocationVtxPos = LOC_POSITION;
+        protected int attribLocationVtxUV = LOC_UV;
+        protected int attribLocationVtxColor = LOC_COLOR;
         protected int vboHandle = 0;
         protected int elementsHandle = 0;
-        // protected int vertexBufferSize;
-        // protected int indexBufferSize;
-        // protected boolean hasPolygonMode;
-        protected boolean hasClipOrigin;
+        protected int vaoHandle = 0;
+
+        // Feature flags, decided once in init()
+        protected boolean useTranslationLayerPath = false; // true on mobile/translation layers: only use the safest subset of GL
+        protected boolean hasVaos = true;
+        protected boolean hasSamplers = false;
+        protected boolean hasPolygonMode = false;
+        protected boolean hasPrimitiveRestart = false;
+        protected boolean hasClipOrigin = false;
+        protected boolean hasBaseVertex = false;
     }
 
-    /**
-     * Internal class to store containers for frequently used arrays.
-     * This class helps minimize the number of object allocations on the JVM side,
-     * thereby improving performance and reducing garbage collection overhead.
-     */
     private static final class Properties {
         private final ImVec4 clipRect = new ImVec4();
         private final float[] orthoProjMatrix = new float[4 * 4];
@@ -202,6 +103,8 @@ public class CustomImGuiImplGl3 {
         private final int[] lastBlendDstAlpha = new int[1];
         private final int[] lastBlendEquationRgb = new int[1];
         private final int[] lastBlendEquationAlpha = new int[1];
+        private final int[] tmp = new int[1];
+        private final java.nio.ByteBuffer lastColorMaskBytes = org.lwjgl.BufferUtils.createByteBuffer(4);
         private boolean lastEnableBlend = false;
         private boolean lastEnableCullFace = false;
         private boolean lastEnableDepthTest = false;
@@ -213,94 +116,109 @@ public class CustomImGuiImplGl3 {
     protected Data data = null;
     private final Properties props = new Properties();
 
+    // Vertex offset currently applied through the attribute pointers (base vertex emulation)
+    private int currentVtxOffset = 0;
+
+    // Diagnostics: logs GL errors per stage for the first frames (or always with -Dflashback.glDebug=true)
+    private static final boolean GL_DEBUG_FORCED = Boolean.getBoolean("flashback.glDebug");
+    private int debugFrames = 0;
+    private final java.util.Set<String> reportedErrors = new java.util.HashSet<>();
+
+    private boolean debugActive() {
+        return GL_DEBUG_FORCED || debugFrames < 90;
+    }
+
+    private void checkGl(String stage) {
+        if (!debugActive()) return;
+        int error = glGetError();
+        int guard = 0;
+        while (error != GL_NO_ERROR && guard++ < 8) {
+            String key = stage + "/" + error;
+            if (reportedErrors.add(key)) {
+                Flashback.LOGGER.warn("ImGui GL error 0x{} after '{}' (frame {})", Integer.toHexString(error), stage, debugFrames);
+            }
+            error = glGetError();
+        }
+    }
+
     protected Data newData() {
         return new Data();
     }
 
-    /**
-     * Method to do an initialization of the {@link CustomImGuiImplGl3} state.
-     * It SHOULD be called before calling of the {@link CustomImGuiImplGl3#renderDrawData(ImDrawData)} method.
-     * <p>
-     * Unlike in the {@link #init(String)} method, here the glslVersion argument is omitted.
-     * Thus, a "#version 130" string will be used instead.
-     *
-     * @return true when initialized
-     */
     public boolean init() {
         return init(null);
     }
 
     /**
-     * Method to do an initialization of the {@link CustomImGuiImplGl3} state.
-     * It SHOULD be called before calling of the {@link CustomImGuiImplGl3#renderDrawData(ImDrawData)} method.
-     * <p>
-     * Method takes an argument, which should be a valid GLSL string with the version to use.
-     * <pre>
-     * ----------------------------------------
-     * OpenGL    GLSL      GLSL
-     * version   version   string
-     * ---------------------------------------
-     *  2.0       110       "#version 110"
-     *  2.1       120       "#version 120"
-     *  3.0       130       "#version 130"
-     *  3.1       140       "#version 140"
-     *  3.2       150       "#version 150"
-     *  3.3       330       "#version 330 core"
-     *  4.0       400       "#version 400 core"
-     *  4.1       410       "#version 410 core"
-     *  4.2       420       "#version 410 core"
-     *  4.3       430       "#version 430 core"
-     *  ES 3.0    300       "#version 300 es"   = WebGL 2.0
-     * ---------------------------------------
-     * </pre>
-     * <p>
-     * If the argument is null, then a "#version 130" (150 for APPLE) string will be used by default.
-     *
-     * @param glslVersion string with the version of the GLSL
-     * @return true when initialized
+     * @param glslVersion GLSL version directive to try first (e.g. {@code "#version 150"}), or null for a sensible default.
+     *                    If it fails to compile/link, other versions are tried automatically.
      */
     public boolean init(final String glslVersion) {
         data = newData();
+        data.useTranslationLayerPath = MobileCompat.isMobile();
 
         final ImGuiIO io = ReplayUI.getIO();
-        io.setBackendRendererName("imgui-java_impl_opengl3");
+        io.setBackendRendererName("flashback_impl_opengl3_compat");
 
-        { // Desktop or GLES 3
-            final String glVersion = glGetString(GL_VERSION);
-            int major = glGetInteger(GL_MAJOR_VERSION);
-            int minor = glGetInteger(GL_MINOR_VERSION);
-            if (major == 0 && minor == 0) {
-                // Query GL_VERSION in desktop GL 2.x, the string will start with "<major>.<minor>"
-                if (glVersion != null) {
-                    final String[] glVersions = glVersion.split("\\.");
-                    major = Integer.parseInt(glVersions[0]);
-                    minor = Integer.parseInt(glVersions[1]);
-                }
-            }
-            data.glVersion = major * 100 + minor * 10;
-            data.glProfileMask = glGetInteger(GL_CONTEXT_PROFILE_MASK);
-            data.glProfileIsCompat = (data.glProfileMask & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT) != 0;
-            if (data.glVersion < 330) { // Ignore in higher GL versions since they support sampler objects anyway
-                try {
-                    data.glCapabilities = GL.getCapabilities();
-                } catch (IllegalStateException ignored) {
-                    // IllegalStateException – if setCapabilities has never been called in the current thread or was last called with a null value
-                    // This exception can be safely ignored as it does not impact the initialization process.
-                    // GL_ARB_sampler_objects will be unavailable (and therefore not supported) if the GL version is less than 3.3.
-                }
+        // Probe the context
+        clearGlErrors();
+        final String glVersionString = glGetString(GL_VERSION);
+        data.isEs = glVersionString != null && glVersionString.contains("OpenGL ES");
+
+        int major = 0;
+        int minor = 0;
+        if (!data.isEs) {
+            major = glGetInteger(GL_MAJOR_VERSION);
+            minor = glGetInteger(GL_MINOR_VERSION);
+            clearGlErrors(); // GL_MAJOR_VERSION is invalid on GL < 3.0
+        }
+        if (major == 0 && minor == 0 && glVersionString != null) {
+            // "4.6 (Compatibility Profile) Mesa ...", "OpenGL ES 3.2 MobileGlues ...", etc.
+            final Matcher matcher = Pattern.compile("(\\d+)\\.(\\d+)").matcher(glVersionString);
+            if (matcher.find()) {
+                major = Integer.parseInt(matcher.group(1));
+                minor = Integer.parseInt(matcher.group(2));
             }
         }
+        data.glVersion = major * 100 + minor * 10;
 
-        // We can honor the ImDrawCmd::VtxOffset field, allowing for large meshes.
-        if (data.glVersion >= 320) {
-            io.addBackendFlags(ImGuiBackendFlags.RendererHasVtxOffset);
+        if (!data.useTranslationLayerPath && !data.isEs && data.glVersion >= 320) {
+            final int profileMask = glGetInteger(GL_CONTEXT_PROFILE_MASK);
+            clearGlErrors();
+            data.glProfileIsCompat = (profileMask & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT) != 0;
         }
 
-        // We can create multi-viewports on the Renderer side (optional)
-        io.addBackendFlags(ImGuiBackendFlags.RendererHasViewports);
+        try {
+            data.glCapabilities = GL.getCapabilities();
+        } catch (IllegalStateException ignored) {
+            // No capabilities in this thread, only affects optional extension checks
+        }
+
+        final boolean arbSamplers = data.glCapabilities != null && data.glCapabilities.GL_ARB_sampler_objects;
+        data.hasVaos = data.glVersion >= 300 || (data.glCapabilities != null && data.glCapabilities.GL_ARB_vertex_array_object);
+        final boolean samplerFunctions = data.glCapabilities != null && data.glCapabilities.glBindSampler != 0L;
+        // Sampler objects override the texture's own filter state. Minecraft binds its own samplers (often with mipmap
+        // filters), which makes our mipmap-less font texture "incomplete" => sampled as black. So we always unbind it.
+        data.hasSamplers = data.glVersion >= 330 || (data.isEs && data.glVersion >= 300) || arbSamplers || samplerFunctions;
+
+        // Desktop-only state. Translation layers either don't implement it or raise GL errors for it
+        data.hasPolygonMode = !data.useTranslationLayerPath && !data.isEs && data.glVersion >= 200;
+        data.hasPrimitiveRestart = !data.useTranslationLayerPath && !data.isEs && data.glVersion >= 310;
+        data.hasClipOrigin = !data.useTranslationLayerPath && !data.isEs && data.glVersion >= 450;
+        data.hasBaseVertex = !data.useTranslationLayerPath && !data.isEs && data.glVersion >= 320;
+
+        // Vertex offsets are always supported: either natively (base vertex) or emulated through attribute pointers
+        io.addBackendFlags(ImGuiBackendFlags.RendererHasVtxOffset);
+
+        // Multi-viewports need real desktop windows, never advertise them on mobile
+        if (!data.useTranslationLayerPath) {
+            io.addBackendFlags(ImGuiBackendFlags.RendererHasViewports);
+        }
 
         if (glslVersion == null) {
-            if (IS_APPLE) {
+            if (data.isEs) {
+                data.glslVersion = "#version 300 es";
+            } else if (IS_APPLE) {
                 data.glslVersion = "#version 150";
             } else {
                 data.glslVersion = "#version 130";
@@ -309,19 +227,15 @@ public class CustomImGuiImplGl3 {
             data.glslVersion = glslVersion;
         }
 
-        // Make an arbitrary GL call (we don't actually need the result)
-        // IF YOU GET A CRASH HERE: it probably means the OpenGL function loader didn't do its job. Let us know!
-        {
-            final int[] currentTexture = new int[1];
-            glGetIntegerv(GL_TEXTURE_BINDING_2D, currentTexture);
-        }
+        // Make an arbitrary GL call, if this crashes the GL function loader didn't do its job
+        glGetIntegerv(GL_TEXTURE_BINDING_2D, props.tmp);
 
-        data.hasClipOrigin = data.glVersion >= 450;
-
-
-        if (ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {
+        if (!data.useTranslationLayerPath && ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {
             initPlatformInterface();
         }
+
+        Flashback.LOGGER.info("ImGui GL backend: version={} ({}), es={}, translationLayerPath={}, samplers={}, baseVertex={}",
+                glVersionString, data.glVersion, data.isEs, data.useTranslationLayerPath, data.hasSamplers, data.hasBaseVertex);
 
         return true;
     }
@@ -329,7 +243,9 @@ public class CustomImGuiImplGl3 {
     public void shutdown() {
         final ImGuiIO io = ReplayUI.getIO();
 
-        shutdownPlatformInterface();
+        if (!data.useTranslationLayerPath) {
+            shutdownPlatformInterface();
+        }
         destroyDeviceObjects();
 
         io.setBackendRendererName(null);
@@ -346,8 +262,21 @@ public class CustomImGuiImplGl3 {
         }
     }
 
-    protected void setupRenderState(final ImDrawData drawData, final int fbWidth, final int fbHeight, final int gVertexArrayObject) {
-        // Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled, polygon fill
+    private static void clearGlErrors() {
+        for (int i = 0; i < 16 && glGetError() != GL_NO_ERROR; i++) {
+            // drain
+        }
+    }
+
+    private void setVertexAttribPointers(final long baseOffset) {
+        final int stride = ImDrawData.sizeOfImDrawVert();
+        glVertexAttribPointer(data.attribLocationVtxPos, 2, GL_FLOAT, false, stride, baseOffset);
+        glVertexAttribPointer(data.attribLocationVtxUV, 2, GL_FLOAT, false, stride, baseOffset + 8);
+        glVertexAttribPointer(data.attribLocationVtxColor, 4, GL_UNSIGNED_BYTE, true, stride, baseOffset + 16);
+    }
+
+    protected void setupRenderState(final ImDrawData drawData, final int fbWidth, final int fbHeight, final int vertexArrayObject) {
+        // Alpha-blending enabled, no face culling, no depth testing, scissor enabled
         glEnable(GL_BLEND);
         glBlendEquation(GL_FUNC_ADD);
         glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -355,35 +284,32 @@ public class CustomImGuiImplGl3 {
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_STENCIL_TEST);
         glEnable(GL_SCISSOR_TEST);
+        glColorMask(true, true, true, true);
 
-        if (data.glVersion >= 310) {
+        if (data.hasPrimitiveRestart) {
             glDisable(GL_PRIMITIVE_RESTART);
         }
-        if (data.glVersion >= 200) {
+        if (data.hasPolygonMode) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
 
         // Support for GL 4.5 rarely used glClipControl(GL_UPPER_LEFT)
         boolean clipOriginLowerLeft = true;
         if (data.hasClipOrigin) {
-            final int[] currentClipOrigin = new int[1];
-            glGetIntegerv(GL_CLIP_ORIGIN, currentClipOrigin);
-            if (currentClipOrigin[0] == GL_UPPER_LEFT) {
+            glGetIntegerv(GL_CLIP_ORIGIN, props.tmp);
+            if (props.tmp[0] == GL_UPPER_LEFT) {
                 clipOriginLowerLeft = false;
             }
+            clearGlErrors();
         }
 
-        // Setup viewport, orthographic projection matrix
-        // Our visible imgui space lies from draw_data->DisplayPos (top left) to draw_data->DisplayPos+data_data->DisplaySize (bottom right).
-        // DisplayPos is (0,0) for single viewport apps.
         glViewport(0, 0, fbWidth, fbHeight);
         float L = drawData.getDisplayPosX();
         float R = drawData.getDisplayPosX() + drawData.getDisplaySizeX();
         float T = drawData.getDisplayPosY();
         float B = drawData.getDisplayPosY() + drawData.getDisplaySizeY();
 
-        // Swap top and bottom if origin is upper left
-        if (data.hasClipOrigin && !clipOriginLowerLeft) {
+        if (!clipOriginLowerLeft) {
             float tmp = T;
             T = B;
             B = tmp;
@@ -400,33 +326,29 @@ public class CustomImGuiImplGl3 {
         glUniform1i(data.attribLocationTex, 0);
         glUniformMatrix4fv(data.attribLocationProjMtx, false, props.orthoProjMatrix);
 
-        if (data.glVersion >= 330 || (data.glCapabilities != null && data.glCapabilities.GL_ARB_sampler_objects)) {
+        if (data.hasSamplers) {
             glBindSampler(0, 0);
         }
 
-        glBindVertexArray(gVertexArrayObject);
+        if (data.hasVaos) {
+            glBindVertexArray(vertexArrayObject);
+        }
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        // Bind vertex/index buffers and setup attributes for ImDrawVert
         glBindBuffer(GL_ARRAY_BUFFER, data.vboHandle);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, data.elementsHandle);
         glEnableVertexAttribArray(data.attribLocationVtxPos);
         glEnableVertexAttribArray(data.attribLocationVtxUV);
         glEnableVertexAttribArray(data.attribLocationVtxColor);
-        glVertexAttribPointer(data.attribLocationVtxPos, 2, GL_FLOAT, false, ImDrawData.sizeOfImDrawVert(), 0);
-        glVertexAttribPointer(data.attribLocationVtxUV, 2, GL_FLOAT, false, ImDrawData.sizeOfImDrawVert(), 8);
-        glVertexAttribPointer(data.attribLocationVtxColor, 4, GL_UNSIGNED_BYTE, true, ImDrawData.sizeOfImDrawVert(), 16);
+        setVertexAttribPointers(0);
+        this.currentVtxOffset = 0;
     }
 
     /**
-     * OpenGL3 Render function.
-     * Note that this implementation is little overcomplicated because we are saving/setting up/restoring every OpenGL state explicitly.
-     * This is in order to be able to run within an OpenGL engine that doesn't do so.
-     *
-     * @param drawData draw data to render
+     * Renders the draw data. Saves and restores every piece of GL state that it modifies so that it can run inside
+     * an engine that doesn't track state for us.
      */
     public void renderDrawData(final ImDrawData drawData) {
-        // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
         final int fbWidth = (int) (drawData.getDisplaySizeX() * drawData.getFramebufferScaleX());
         final int fbHeight = (int) (drawData.getDisplaySizeY() * drawData.getFramebufferScaleY());
         if (fbWidth <= 0 || fbHeight <= 0) {
@@ -437,19 +359,23 @@ public class CustomImGuiImplGl3 {
             return;
         }
 
+        // Backup GL state
         glGetIntegerv(GL_FRAMEBUFFER_BINDING, props.lastFramebuffer);
         glGetIntegerv(GL_ACTIVE_TEXTURE, props.lastActiveTexture);
         glActiveTexture(GL_TEXTURE0);
         glGetIntegerv(GL_CURRENT_PROGRAM, props.lastProgram);
         glGetIntegerv(GL_TEXTURE_BINDING_2D, props.lastTexture);
-        if (data.glVersion >= 330 || (data.glCapabilities != null && data.glCapabilities.GL_ARB_sampler_objects)) {
+        if (data.hasSamplers) {
             glGetIntegerv(GL_SAMPLER_BINDING, props.lastSampler);
         }
         glGetIntegerv(GL_ARRAY_BUFFER_BINDING, props.lastArrayBuffer);
-        glGetIntegerv(GL_VERTEX_ARRAY_BINDING, props.lastVertexArrayObject);
-        if (data.glVersion >= 200) {
+        if (data.hasVaos) {
+            glGetIntegerv(GL_VERTEX_ARRAY_BINDING, props.lastVertexArrayObject);
+        }
+        if (data.hasPolygonMode) {
             glGetIntegerv(GL_POLYGON_MODE, props.lastPolygonMode);
         }
+        glGetBooleanv(GL_COLOR_WRITEMASK, props.lastColorMaskBytes.rewind());
         glGetIntegerv(GL_VIEWPORT, props.lastViewport);
         glGetIntegerv(GL_SCISSOR_BOX, props.lastScissorBox);
         glGetIntegerv(GL_BLEND_SRC_RGB, props.lastBlendSrcRgb);
@@ -463,94 +389,94 @@ public class CustomImGuiImplGl3 {
         props.lastEnableDepthTest = glIsEnabled(GL_DEPTH_TEST);
         props.lastEnableStencilTest = glIsEnabled(GL_STENCIL_TEST);
         props.lastEnableScissorTest = glIsEnabled(GL_SCISSOR_TEST);
-        if (data.glVersion >= 310) {
+        if (data.hasPrimitiveRestart) {
             props.lastEnablePrimitiveRestart = glIsEnabled(GL_PRIMITIVE_RESTART);
         }
 
-        // Setup desired GL state
-        // Recreate the VAO every time (this is to easily allow multiple GL contexts to be rendered to. VAO are not shared among GL contexts)
-        // The renderer would actually work without any VAO bound, but then our VertexAttrib calls would overwrite the default one currently bound.
-        final int vertexArrayObject = glGenVertexArrays();
-        setupRenderState(drawData, fbWidth, fbHeight, vertexArrayObject);
+        // Persistent VAO (single GL context). Falls back to the default VAO/state if VAOs are unavailable.
+        if (data.hasVaos && data.vaoHandle == 0) {
+            data.vaoHandle = glGenVertexArrays();
+        }
+        checkGl("backup state");
+        setupRenderState(drawData, fbWidth, fbHeight, data.vaoHandle);
+        checkGl("setupRenderState");
 
-        // Will project scissor/clipping rectangles into framebuffer space
-        final float clipOffX = drawData.getDisplayPosX(); // (0,0) unless using multi-viewports
-        final float clipOffY = drawData.getDisplayPosY(); // (0,0) unless using multi-viewports
-        final float clipScaleX = drawData.getFramebufferScaleX(); // (1,1) unless using retina display which are often (2,2)
-        final float clipScaleY = drawData.getFramebufferScaleY(); // (1,1) unless using retina display which are often (2,2)
+        final float clipOffX = drawData.getDisplayPosX();
+        final float clipOffY = drawData.getDisplayPosY();
+        final float clipScaleX = drawData.getFramebufferScaleX();
+        final float clipScaleY = drawData.getFramebufferScaleY();
 
-        // Render command lists
+        final int vertexSize = ImDrawData.sizeOfImDrawVert();
+        final int indexSize = ImDrawData.sizeOfImDrawIdx();
+        final int indexType = indexSize == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
+
         for (int n = 0; n < drawData.getCmdListsCount(); n++) {
-            // FIXME: this is a straightforward port from Dear ImGui and it doesn't work with multi-viewports.
-            //        So we keep solution we used before.
-            // Upload vertex/index buffers
-            // final int vtxBufferSize = drawData.getCmdListVtxBufferSize(n) * ImDrawData.sizeOfImDrawVert();
-            // final int idxBufferSize = drawData.getCmdListIdxBufferSize(n) * ImDrawData.sizeOfImDrawIdx();
-            // if (data.vertexBufferSize < vtxBufferSize) {
-            //     data.vertexBufferSize = vtxBufferSize;
-            //     glBufferData(GL_ARRAY_BUFFER, data.vertexBufferSize, GL_STREAM_DRAW);
-            // }
-            // if (data.indexBufferSize < idxBufferSize) {
-            //     data.indexBufferSize = idxBufferSize;
-            //     glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.indexBufferSize, GL_STREAM_DRAW);
-            // }
-            // glBufferSubData(GL_ARRAY_BUFFER, 0, drawData.getCmdListVtxBufferData(n));
-            // glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, drawData.getCmdListIdxBufferData(n));
-
             glBufferData(GL_ARRAY_BUFFER, drawData.getCmdListVtxBufferData(n), GL_STREAM_DRAW);
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, drawData.getCmdListIdxBufferData(n), GL_STREAM_DRAW);
+            checkGl("upload buffers");
+
+            // The buffers were re-specified, offsets are relative to the start of the (new) vertex buffer
+            if (this.currentVtxOffset != 0) {
+                setVertexAttribPointers(0);
+                this.currentVtxOffset = 0;
+            }
 
             for (int cmdIdx = 0; cmdIdx < drawData.getCmdListCmdBufferSize(n); cmdIdx++) {
-                // TODO:
-                // if userCallback
-                // else
-
                 drawData.getCmdListCmdBufferClipRect(props.clipRect, n, cmdIdx);
 
-                final float clipMinX = (props.clipRect.x - clipOffX) * clipScaleX;
-                final float clipMinY = (props.clipRect.y - clipOffY) * clipScaleY;
-                final float clipMaxX = (props.clipRect.z - clipOffX) * clipScaleX;
-                final float clipMaxY = (props.clipRect.w - clipOffY) * clipScaleY;
+                float clipMinX = (props.clipRect.x - clipOffX) * clipScaleX;
+                float clipMinY = (props.clipRect.y - clipOffY) * clipScaleY;
+                float clipMaxX = (props.clipRect.z - clipOffX) * clipScaleX;
+                float clipMaxY = (props.clipRect.w - clipOffY) * clipScaleY;
+
+                // Clamp to the framebuffer, translation layers can choke on negative/out of range scissor rects
+                clipMinX = Math.max(0, clipMinX);
+                clipMinY = Math.max(0, clipMinY);
+                clipMaxX = Math.min(fbWidth, clipMaxX);
+                clipMaxY = Math.min(fbHeight, clipMaxY);
 
                 if (clipMaxX <= clipMinX || clipMaxY <= clipMinY) {
                     continue;
                 }
 
-                // Apply scissor/clipping rectangle (Y is inverted in OpenGL)
+                // Y is inverted in OpenGL
                 glScissor((int) clipMinX, (int) (fbHeight - clipMaxY), (int) (clipMaxX - clipMinX), (int) (clipMaxY - clipMinY));
 
-                // Bind texture, Draw
                 final long textureId = drawData.getCmdListCmdBufferTextureId(n, cmdIdx);
                 final int elemCount = drawData.getCmdListCmdBufferElemCount(n, cmdIdx);
                 final int idxOffset = drawData.getCmdListCmdBufferIdxOffset(n, cmdIdx);
                 final int vtxOffset = drawData.getCmdListCmdBufferVtxOffset(n, cmdIdx);
-                final long indices = idxOffset * (long) ImDrawData.sizeOfImDrawIdx();
-                final int type = ImDrawData.sizeOfImDrawIdx() == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
+                final long indices = idxOffset * (long) indexSize;
 
                 glBindTexture(GL_TEXTURE_2D, (int) textureId);
 
-                if (data.glVersion >= 320) {
-                    glDrawElementsBaseVertex(GL_TRIANGLES, elemCount, type, indices, vtxOffset);
+                if (data.hasBaseVertex) {
+                    glDrawElementsBaseVertex(GL_TRIANGLES, elemCount, indexType, indices, vtxOffset);
                 } else {
-                    glDrawElements(GL_TRIANGLES, elemCount, type, indices);
+                    // Emulate base vertex by moving the vertex attribute pointers
+                    if (vtxOffset != this.currentVtxOffset) {
+                        setVertexAttribPointers((long) vtxOffset * vertexSize);
+                        this.currentVtxOffset = vtxOffset;
+                    }
+                    glDrawElements(GL_TRIANGLES, elemCount, indexType, indices);
                 }
+                checkGl("draw");
             }
         }
 
-        // Destroy the temporary VAO
-        glDeleteVertexArrays(vertexArrayObject);
-
         // Restore modified GL state
-        // This "glIsProgram()" check is required because if the program is "pending deletion" at the time of binding backup, it will have been deleted by now and will cause an OpenGL error. See #6220.
+        // glIsProgram() check: if the program is "pending deletion" it may have been deleted by now, see imgui #6220
         if (props.lastProgram[0] == 0 || glIsProgram(props.lastProgram[0])) {
             glUseProgram(props.lastProgram[0]);
         }
         glBindTexture(GL_TEXTURE_2D, props.lastTexture[0]);
-        if (data.glVersion >= 330 || (data.glCapabilities != null && data.glCapabilities.GL_ARB_sampler_objects)) {
+        if (data.hasSamplers) {
             glBindSampler(0, props.lastSampler[0]);
         }
         glActiveTexture(props.lastActiveTexture[0]);
-        glBindVertexArray(props.lastVertexArrayObject[0]);
+        if (data.hasVaos) {
+            glBindVertexArray(props.lastVertexArrayObject[0]);
+        }
         glBindFramebuffer(GL_FRAMEBUFFER, props.lastFramebuffer[0]);
         glBindBuffer(GL_ARRAY_BUFFER, props.lastArrayBuffer[0]);
         glBlendEquationSeparate(props.lastBlendEquationRgb[0], props.lastBlendEquationAlpha[0]);
@@ -565,26 +491,33 @@ public class CustomImGuiImplGl3 {
         else glDisable(GL_STENCIL_TEST);
         if (props.lastEnableScissorTest) glEnable(GL_SCISSOR_TEST);
         else glDisable(GL_SCISSOR_TEST);
-        if (data.glVersion >= 310) {
-            if (props.lastEnablePrimitiveRestart) {
-                glEnable(GL_PRIMITIVE_RESTART);
+        if (data.hasPrimitiveRestart) {
+            if (props.lastEnablePrimitiveRestart) glEnable(GL_PRIMITIVE_RESTART);
+            else glDisable(GL_PRIMITIVE_RESTART);
+        }
+        if (data.hasPolygonMode) {
+            if (data.glVersion <= 310 || data.glProfileIsCompat) {
+                glPolygonMode(GL_FRONT, props.lastPolygonMode[0]);
+                glPolygonMode(GL_BACK, props.lastPolygonMode[1]);
             } else {
-                glDisable(GL_PRIMITIVE_RESTART);
+                glPolygonMode(GL_FRONT_AND_BACK, props.lastPolygonMode[0]);
             }
         }
-        if (data.glVersion <= 310 || data.glProfileIsCompat) {
-            glPolygonMode(GL_FRONT, props.lastPolygonMode[0]);
-            glPolygonMode(GL_BACK, props.lastPolygonMode[1]);
-        } else {
-            glPolygonMode(GL_FRONT_AND_BACK, props.lastPolygonMode[0]);
-        }
+        glColorMask(props.lastColorMaskBytes.get(0) != 0, props.lastColorMaskBytes.get(1) != 0,
+                props.lastColorMaskBytes.get(2) != 0, props.lastColorMaskBytes.get(3) != 0);
         glViewport(props.lastViewport[0], props.lastViewport[1], props.lastViewport[2], props.lastViewport[3]);
         glScissor(props.lastScissorBox[0], props.lastScissorBox[1], props.lastScissorBox[2], props.lastScissorBox[3]);
+        checkGl("restore state");
+
+        if (debugFrames == 0 || debugFrames == 30) {
+            Flashback.LOGGER.info("ImGui frame {}: fb={}x{} lists={} prevFbo={} prevProgram={} prevVao={} prevSampler={} prevViewport={}",
+                    debugFrames, fbWidth, fbHeight, drawData.getCmdListsCount(), props.lastFramebuffer[0], props.lastProgram[0],
+                    props.lastVertexArrayObject[0], props.lastSampler[0], java.util.Arrays.toString(props.lastViewport));
+        }
+        debugFrames++;
     }
 
-    /**
-     * Method rebuilds the font atlas for Dear ImGui. Could be used to update application fonts in runtime.
-     */
+    /** Rebuilds the font texture. Call after changing fonts. */
     public void updateFontsTexture() {
         if (data.fontTexture != -1) glDeleteTextures(data.fontTexture);
 
@@ -593,24 +526,27 @@ public class CustomImGuiImplGl3 {
         final ImInt height = new ImInt();
         final ByteBuffer buffer = fontAtlas.getTexDataAsRGBA32(width, height);
 
-        final int[] lastTexture = new int[1];
-        glGetIntegerv(GL_TEXTURE_BINDING_2D, lastTexture);
+        glGetIntegerv(GL_TEXTURE_BINDING_2D, props.lastTexture);
 
         data.fontTexture = glGenTextures();
         glBindTexture(GL_TEXTURE_2D, data.fontTexture);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-        glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
-        glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
+        if (!data.isEs || data.glVersion >= 300) {
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+            glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
+            glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
+        }
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width.get(), height.get(), 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 
         fontAtlas.setTexID(data.fontTexture);
 
-        glBindTexture(GL_TEXTURE_2D, lastTexture[0]);
+        glBindTexture(GL_TEXTURE_2D, props.lastTexture[0]);
     }
 
     public void destroyFontsTexture() {
@@ -628,11 +564,10 @@ public class CustomImGuiImplGl3 {
         glGetShaderiv(handle, GL_COMPILE_STATUS, status);
         glGetShaderiv(handle, GL_INFO_LOG_LENGTH, logLength);
         if (status[0] == GL_FALSE) {
-            System.err.printf("%s: failed to compile %s! With GLSL: %s\n", this, desc, data.glslVersion);
+            Flashback.LOGGER.error("ImGui: failed to compile {} with GLSL: {}", desc, data.glslVersion);
         }
         if (logLength[0] > 1) {
-            final String log = glGetShaderInfoLog(handle);
-            System.err.println(log);
+            Flashback.LOGGER.error(glGetShaderInfoLog(handle));
         }
         return status[0] == GL_TRUE;
     }
@@ -643,92 +578,182 @@ public class CustomImGuiImplGl3 {
         glGetProgramiv(handle, GL_LINK_STATUS, status);
         glGetProgramiv(handle, GL_INFO_LOG_LENGTH, logLength);
         if (status[0] == GL_FALSE) {
-            System.err.printf("%s: failed to link %s! With GLSL: %s\n", this, desc, data.glslVersion);
+            Flashback.LOGGER.error("ImGui: failed to link {} with GLSL: {}", desc, data.glslVersion);
         }
         if (logLength[0] > 1) {
-            final String log = glGetProgramInfoLog(handle);
-            System.err.println(log);
+            Flashback.LOGGER.error(glGetProgramInfoLog(handle));
         }
         return status[0] == GL_TRUE;
     }
 
     protected int parseGlslVersionString(final String glslVersion) {
-        final Pattern p = Pattern.compile("\\d+");
-        final Matcher m = p.matcher(glslVersion);
-
+        final Matcher m = Pattern.compile("\\d+").matcher(glslVersion);
         if (m.find()) {
             return Integer.parseInt(m.group());
         }
-
         return 130;
+    }
+
+    /** GLSL versions to try, in order. The requested one always goes first. */
+    private List<String> glslCandidates() {
+        List<String> candidates = new ArrayList<>();
+        candidates.add(data.glslVersion);
+        String[] fallbacks = data.isEs
+                ? new String[]{"#version 300 es", "#version 310 es", "#version 320 es"}
+                : new String[]{"#version 150", "#version 330 core", "#version 130", "#version 300 es", "#version 120"};
+        for (String fallback : fallbacks) {
+            if (!candidates.contains(fallback)) candidates.add(fallback);
+        }
+        return candidates;
+    }
+
+    private static boolean isEsVersion(String glsl) {
+        return glsl.contains("es");
+    }
+
+    private int buildProgram(final String glsl) {
+        final int version = parseGlslVersionString(glsl);
+        final boolean es = isEsVersion(glsl);
+
+        final String vertexSource;
+        final String fragmentSource;
+        if (!es && version < 130) {
+            vertexSource = glsl + "\n"
+                    + "uniform mat4 ProjMtx;\n"
+                    + "attribute vec2 Position;\n"
+                    + "attribute vec2 UV;\n"
+                    + "attribute vec4 Color;\n"
+                    + "varying vec2 Frag_UV;\n"
+                    + "varying vec4 Frag_Color;\n"
+                    + "void main()\n"
+                    + "{\n"
+                    + "    Frag_UV = UV;\n"
+                    + "    Frag_Color = Color;\n"
+                    + "    gl_Position = ProjMtx * vec4(Position.xy,0,1);\n"
+                    + "}\n";
+            fragmentSource = glsl + "\n"
+                    + "#ifdef GL_ES\n"
+                    + "    precision mediump float;\n"
+                    + "#endif\n"
+                    + "uniform sampler2D Texture;\n"
+                    + "varying vec2 Frag_UV;\n"
+                    + "varying vec4 Frag_Color;\n"
+                    + "void main()\n"
+                    + "{\n"
+                    + "    gl_FragColor = Frag_Color * texture2D(Texture, Frag_UV.st);\n"
+                    + "}\n";
+        } else {
+            // Attribute locations are bound with glBindAttribLocation, no layout qualifiers needed (not allowed in GLSL 130/150)
+            final String vertexPrecision = es ? "precision highp float;\n" : "";
+            final String fragmentPrecision = es ? "precision mediump float;\n" : "";
+            vertexSource = glsl + "\n"
+                    + vertexPrecision
+                    + "uniform mat4 ProjMtx;\n"
+                    + "in vec2 Position;\n"
+                    + "in vec2 UV;\n"
+                    + "in vec4 Color;\n"
+                    + "out vec2 Frag_UV;\n"
+                    + "out vec4 Frag_Color;\n"
+                    + "void main()\n"
+                    + "{\n"
+                    + "    Frag_UV = UV;\n"
+                    + "    Frag_Color = Color;\n"
+                    + "    gl_Position = ProjMtx * vec4(Position.xy,0,1);\n"
+                    + "}\n";
+            fragmentSource = glsl + "\n"
+                    + fragmentPrecision
+                    + "uniform sampler2D Texture;\n"
+                    + "in vec2 Frag_UV;\n"
+                    + "in vec4 Frag_Color;\n"
+                    + "out vec4 Out_Color;\n"
+                    + "void main()\n"
+                    + "{\n"
+                    + "    Out_Color = Frag_Color * texture(Texture, Frag_UV.st);\n"
+                    + "}\n";
+        }
+
+        final String previous = data.glslVersion;
+        data.glslVersion = glsl;
+
+        final int vertHandle = glCreateShader(GL_VERTEX_SHADER);
+        glShaderSource(vertHandle, vertexSource);
+        glCompileShader(vertHandle);
+        final boolean vertOk = checkShader(vertHandle, "vertex shader");
+
+        final int fragHandle = glCreateShader(GL_FRAGMENT_SHADER);
+        glShaderSource(fragHandle, fragmentSource);
+        glCompileShader(fragHandle);
+        final boolean fragOk = checkShader(fragHandle, "fragment shader");
+
+        int program = 0;
+        boolean linked = false;
+        if (vertOk && fragOk) {
+            program = glCreateProgram();
+            glAttachShader(program, vertHandle);
+            glAttachShader(program, fragHandle);
+            glBindAttribLocation(program, LOC_POSITION, "Position");
+            glBindAttribLocation(program, LOC_UV, "UV");
+            glBindAttribLocation(program, LOC_COLOR, "Color");
+            glLinkProgram(program);
+            linked = checkProgram(program, "shader program");
+            glDetachShader(program, vertHandle);
+            glDetachShader(program, fragHandle);
+        }
+
+        glDeleteShader(vertHandle);
+        glDeleteShader(fragHandle);
+
+        if (!linked) {
+            if (program != 0) glDeleteProgram(program);
+            data.glslVersion = previous;
+            return 0;
+        }
+        return program;
     }
 
     protected boolean createDeviceObjects() {
         // Backup GL state
-        final int[] lastTexture = new int[1];
-        final int[] lastArrayBuffer = new int[1];
-        final int[] lastVertexArray = new int[1];
-        glGetIntegerv(GL_TEXTURE_BINDING_2D, lastTexture);
-        glGetIntegerv(GL_ARRAY_BUFFER_BINDING, lastArrayBuffer);
-        glGetIntegerv(GL_VERTEX_ARRAY_BINDING, lastVertexArray);
-
-        final int glslVersionValue = parseGlslVersionString(data.glslVersion);
-
-        // Select shaders matching our GLSL versions
-        final CharSequence vertexShader;
-        final CharSequence fragmentShader;
-
-        if (glslVersionValue < 130) {
-            vertexShader = vertexShaderGlsl120();
-            fragmentShader = fragmentShaderGlsl120();
-        } else if (glslVersionValue >= 410) {
-            vertexShader = vertexShaderGlsl410Core();
-            fragmentShader = fragmentShaderGlsl410Core();
-        } else if (glslVersionValue == 300) {
-            vertexShader = vertexShaderGlsl300es();
-            fragmentShader = fragmentShaderGlsl300es();
-        } else {
-            vertexShader = vertexShaderGlsl130();
-            fragmentShader = fragmentShaderGlsl130();
+        glGetIntegerv(GL_TEXTURE_BINDING_2D, props.lastTexture);
+        glGetIntegerv(GL_ARRAY_BUFFER_BINDING, props.lastArrayBuffer);
+        if (data.hasVaos) {
+            glGetIntegerv(GL_VERTEX_ARRAY_BINDING, props.lastVertexArrayObject);
         }
 
-        // Create shaders
-        final int vertHandle = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(vertHandle, vertexShader);
-        glCompileShader(vertHandle);
-        checkShader(vertHandle, "vertex shader");
+        int program = 0;
+        for (String candidate : glslCandidates()) {
+            program = buildProgram(candidate);
+            if (program != 0) {
+                data.glslVersion = candidate;
+                break;
+            }
+        }
+        if (program == 0) {
+            Flashback.LOGGER.error("ImGui: unable to create a shader program with any GLSL version");
+            data.shaderHandle = -1;
+            return false;
+        }
 
-        final int fragHandle = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(fragHandle, fragmentShader);
-        glCompileShader(fragHandle);
-        checkShader(fragHandle, "fragment shader");
+        data.shaderHandle = program;
+        data.attribLocationTex = glGetUniformLocation(program, "Texture");
+        data.attribLocationProjMtx = glGetUniformLocation(program, "ProjMtx");
 
-        // Link
-        data.shaderHandle = glCreateProgram();
-        glAttachShader(data.shaderHandle, vertHandle);
-        glAttachShader(data.shaderHandle, fragHandle);
-        glLinkProgram(data.shaderHandle);
-        checkProgram(data.shaderHandle, "shader program");
+        // We bound these ourselves, but trust the driver if it disagrees
+        int pos = glGetAttribLocation(program, "Position");
+        int uv = glGetAttribLocation(program, "UV");
+        int color = glGetAttribLocation(program, "Color");
+        data.attribLocationVtxPos = pos >= 0 ? pos : LOC_POSITION;
+        data.attribLocationVtxUV = uv >= 0 ? uv : LOC_UV;
+        data.attribLocationVtxColor = color >= 0 ? color : LOC_COLOR;
 
-        glDetachShader(data.shaderHandle, vertHandle);
-        glDetachShader(data.shaderHandle, fragHandle);
-        glDeleteShader(vertHandle);
-        glDeleteShader(fragHandle);
-
-        data.attribLocationTex = glGetUniformLocation(data.shaderHandle, "Texture");
-        data.attribLocationProjMtx = glGetUniformLocation(data.shaderHandle, "ProjMtx");
-        data.attribLocationVtxPos = glGetAttribLocation(data.shaderHandle, "Position");
-        data.attribLocationVtxUV = glGetAttribLocation(data.shaderHandle, "UV");
-        data.attribLocationVtxColor = glGetAttribLocation(data.shaderHandle, "Color");
-
-        // Create buffers
         data.vboHandle = glGenBuffers();
         data.elementsHandle = glGenBuffers();
 
         // Restore modified GL state
-        glBindTexture(GL_TEXTURE_2D, lastTexture[0]);
-        glBindBuffer(GL_ARRAY_BUFFER, lastArrayBuffer[0]);
-        glBindVertexArray(lastVertexArray[0]);
+        glBindTexture(GL_TEXTURE_2D, props.lastTexture[0]);
+        glBindBuffer(GL_ARRAY_BUFFER, props.lastArrayBuffer[0]);
+        if (data.hasVaos) {
+            glBindVertexArray(props.lastVertexArrayObject[0]);
+        }
 
         return true;
     }
@@ -742,6 +767,10 @@ public class CustomImGuiImplGl3 {
             glDeleteBuffers(data.elementsHandle);
             data.elementsHandle = 0;
         }
+        if (data.vaoHandle != 0) {
+            glDeleteVertexArrays(data.vaoHandle);
+            data.vaoHandle = 0;
+        }
         if (data.shaderHandle != -1) {
             glDeleteProgram(data.shaderHandle);
             data.shaderHandle = -1;
@@ -750,9 +779,7 @@ public class CustomImGuiImplGl3 {
     }
 
     //--------------------------------------------------------------------------------------------------------
-    // MULTI-VIEWPORT / PLATFORM INTERFACE SUPPORT
-    // This is an _advanced_ and _optional_ feature, allowing the backend to create and handle multiple viewports simultaneously.
-    // If you are new to dear imgui or creating a new binding for dear imgui, it is recommended that you completely ignore this section first..
+    // MULTI-VIEWPORT / PLATFORM INTERFACE SUPPORT (desktop only, never used on mobile)
     //--------------------------------------------------------------------------------------------------------
 
     private final class RendererRenderWindowFunction extends ImPlatformFuncViewport {
@@ -772,121 +799,5 @@ public class CustomImGuiImplGl3 {
 
     protected void shutdownPlatformInterface() {
         ImGui.destroyPlatformWindows();
-    }
-
-    protected String vertexShaderGlsl120() {
-        return data.glslVersion + "\n"
-                + "uniform mat4 ProjMtx;\n"
-                + "attribute vec2 Position;\n"
-                + "attribute vec2 UV;\n"
-                + "attribute vec4 Color;\n"
-                + "varying vec2 Frag_UV;\n"
-                + "varying vec4 Frag_Color;\n"
-                + "void main()\n"
-                + "{\n"
-                + "    Frag_UV = UV;\n"
-                + "    Frag_Color = Color;\n"
-                + "    gl_Position = ProjMtx * vec4(Position.xy,0,1);\n"
-                + "}\n";
-    }
-
-    protected String vertexShaderGlsl130() {
-        return data.glslVersion + "\n"
-                + "uniform mat4 ProjMtx;\n"
-                + "in vec2 Position;\n"
-                + "in vec2 UV;\n"
-                + "in vec4 Color;\n"
-                + "out vec2 Frag_UV;\n"
-                + "out vec4 Frag_Color;\n"
-                + "void main()\n"
-                + "{\n"
-                + "    Frag_UV = UV;\n"
-                + "    Frag_Color = Color;\n"
-                + "    gl_Position = ProjMtx * vec4(Position.xy,0,1);\n"
-                + "}\n";
-    }
-
-    private String vertexShaderGlsl300es() {
-        return data.glslVersion + "\n"
-                + "precision highp float;\n"
-                + "layout (location = 0) in vec2 Position;\n"
-                + "layout (location = 1) in vec2 UV;\n"
-                + "layout (location = 2) in vec4 Color;\n"
-                + "uniform mat4 ProjMtx;\n"
-                + "out vec2 Frag_UV;\n"
-                + "out vec4 Frag_Color;\n"
-                + "void main()\n"
-                + "{\n"
-                + "    Frag_UV = UV;\n"
-                + "    Frag_Color = Color;\n"
-                + "    gl_Position = ProjMtx * vec4(Position.xy,0,1);\n"
-                + "}\n";
-    }
-
-    protected String vertexShaderGlsl410Core() {
-        return data.glslVersion + "\n"
-                + "layout (location = 0) in vec2 Position;\n"
-                + "layout (location = 1) in vec2 UV;\n"
-                + "layout (location = 2) in vec4 Color;\n"
-                + "uniform mat4 ProjMtx;\n"
-                + "out vec2 Frag_UV;\n"
-                + "out vec4 Frag_Color;\n"
-                + "void main()\n"
-                + "{\n"
-                + "    Frag_UV = UV;\n"
-                + "    Frag_Color = Color;\n"
-                + "    gl_Position = ProjMtx * vec4(Position.xy,0,1);\n"
-                + "}\n";
-    }
-
-    protected String fragmentShaderGlsl120() {
-        return data.glslVersion + "\n"
-                + "#ifdef GL_ES\n"
-                + "    precision mediump float;\n"
-                + "#endif\n"
-                + "uniform sampler2D Texture;\n"
-                + "varying vec2 Frag_UV;\n"
-                + "varying vec4 Frag_Color;\n"
-                + "void main()\n"
-                + "{\n"
-                + "    gl_FragColor = Frag_Color * texture2D(Texture, Frag_UV.st);\n"
-                + "}\n";
-    }
-
-    protected String fragmentShaderGlsl130() {
-        return data.glslVersion + "\n"
-                + "uniform sampler2D Texture;\n"
-                + "in vec2 Frag_UV;\n"
-                + "in vec4 Frag_Color;\n"
-                + "out vec4 Out_Color;\n"
-                + "void main()\n"
-                + "{\n"
-                + "    Out_Color = Frag_Color * texture(Texture, Frag_UV.st);\n"
-                + "}\n";
-    }
-
-    protected String fragmentShaderGlsl300es() {
-        return data.glslVersion + "\n"
-                + "precision mediump float;\n"
-                + "uniform sampler2D Texture;\n"
-                + "in vec2 Frag_UV;\n"
-                + "in vec4 Frag_Color;\n"
-                + "layout (location = 0) out vec4 Out_Color;\n"
-                + "void main()\n"
-                + "{\n"
-                + "    Out_Color = Frag_Color * texture(Texture, Frag_UV.st);\n"
-                + "}\n";
-    }
-
-    protected String fragmentShaderGlsl410Core() {
-        return data.glslVersion + "\n"
-                + "in vec2 Frag_UV;\n"
-                + "in vec4 Frag_Color;\n"
-                + "uniform sampler2D Texture;\n"
-                + "layout (location = 0) out vec4 Out_Color;\n"
-                + "void main()\n"
-                + "{\n"
-                + "    Out_Color = Frag_Color * texture(Texture, Frag_UV.st);\n"
-                + "}\n";
     }
 }

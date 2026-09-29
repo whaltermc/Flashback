@@ -3,6 +3,7 @@ package com.moulberry.flashback.editor.ui;
 import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.platform.Window;
 import com.moulberry.flashback.Flashback;
+import com.moulberry.flashback.utils.MobileCompat;
 import com.moulberry.flashback.configuration.FlashbackConfigV1;
 import com.moulberry.flashback.editor.ui.windows.ExportDoneWindow;
 import com.moulberry.flashback.editor.ui.windows.ExportQueueWindow;
@@ -18,10 +19,10 @@ import com.moulberry.flashback.editor.ui.windows.MainMenuBar;
 import com.moulberry.flashback.editor.ui.windows.StartExportWindow;
 import com.moulberry.flashback.editor.ui.windows.TimelineWindow;
 import com.moulberry.flashback.editor.ui.windows.VisualsWindow;
-import imgui.moulberry90.*;
-import imgui.moulberry90.flag.*;
-import imgui.moulberry90.internal.ImGuiContext;
-import imgui.moulberry90.type.ImInt;
+import imgui.moulberry92.*;
+import imgui.moulberry92.flag.*;
+import imgui.moulberry92.internal.ImGuiContext;
+import imgui.moulberry92.type.ImInt;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.LevelLoadingScreen;
@@ -519,8 +520,8 @@ public class ReplayUI {
             // Forcefully ungrab the cursor
             long handle = ImGui.getMainViewport().getPlatformHandle();
             if (GLFW.glfwGetInputMode(handle, GLFW.GLFW_CURSOR) != GLFW.GLFW_CURSOR_NORMAL) {
-                GLFW.glfwSetInputMode(handle, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
-                GLFW.glfwSetCursorPos(handle, ImGui.getMainViewport().getSizeX()/2f, ImGui.getMainViewport().getSizeY()/2f);
+                MobileCompat.setCursorMode(handle, GLFW.GLFW_CURSOR_NORMAL);
+                MobileCompat.setCursorPos(handle, ImGui.getMainViewport().getSizeX()/2f, ImGui.getMainViewport().getSizeY()/2f);
             }
         }
 
@@ -620,7 +621,7 @@ public class ReplayUI {
         // Setup docking
         ImGui.setNextWindowBgAlpha(0);
         int mainDock = ImGui.dockSpaceOverViewport(0, ImGui.getMainViewport(), ImGuiDockNodeFlags.NoDockingInCentralNode);
-        imgui.moulberry90.internal.ImGui.dockBuilderGetCentralNode(mainDock).addLocalFlags(imgui.moulberry90.internal.flag.ImGuiDockNodeFlags.NoTabBar);
+        imgui.moulberry92.internal.ImGui.dockBuilderGetCentralNode(mainDock).addLocalFlags(imgui.moulberry92.internal.flag.ImGuiDockNodeFlags.NoTabBar);
 
         isFrameFocused = false;
         isFrameHovered = false;
@@ -1036,7 +1037,11 @@ public class ReplayUI {
     }
 
     public static boolean isMoveQuickDown() {
-        return ImGui.isKeyDown(Minecraft.getInstance().options.keySprint.key.getValue());
+        int sprintKey = ImGuiHelper.key(Minecraft.getInstance().options.keySprint.key.getValue());
+        if (sprintKey == ImGuiKey.None) {
+            return false; // Sprint is bound to something ImGui has no key for (mouse button, unknown key)
+        }
+        return ImGui.isKeyDown(sprintKey);
     }
 
     public static boolean isCtrlOrCmdDown() {
